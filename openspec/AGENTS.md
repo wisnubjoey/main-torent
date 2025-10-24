@@ -453,4 +453,6 @@ openspec validate --strict # Is it correct?
 openspec archive [change] [--yes|-y]  # Mark complete (add --yes for automation)
 ```
 
+When doing task and need to add some dependecy, plugin or something like that, that needs to run the command, create a new file in root folder named "install.md"
+
 Remember: Specs are truth. Changes are proposals. Keep them in sync.
