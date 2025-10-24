@@ -19,7 +19,7 @@ test('profile information can be updated', function () {
         ->actingAs($user)
         ->patch(route('profile.update'), [
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'phone' => '5550002222',
         ]);
 
     $response
@@ -29,25 +29,29 @@ test('profile information can be updated', function () {
     $user->refresh();
 
     expect($user->name)->toBe('Test User');
-    expect($user->email)->toBe('test@example.com');
-    expect($user->email_verified_at)->toBeNull();
+    expect($user->phone)->toBe('5550002222');
 });
 
-test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
+test('profile phone number must be unique', function () {
+    $user = User::factory()->create([
+        'phone' => '5550001000',
+    ]);
+
+    User::factory()->create([
+        'phone' => '5550002000',
+    ]);
 
     $response = $this
         ->actingAs($user)
+        ->from(route('profile.edit'))
         ->patch(route('profile.update'), [
             'name' => 'Test User',
-            'email' => $user->email,
+            'phone' => '5550002000',
         ]);
 
     $response
-        ->assertSessionHasNoErrors()
+        ->assertSessionHasErrors('phone')
         ->assertRedirect(route('profile.edit'));
-
-    expect($user->refresh()->email_verified_at)->not->toBeNull();
 });
 
 test('user can delete their account', function () {
@@ -82,4 +86,14 @@ test('correct password must be provided to delete account', function () {
         ->assertRedirect(route('profile.edit'));
 
     expect($user->fresh())->not->toBeNull();
+});
+
+test('two-factor settings page is not available', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->get('/settings/two-factor');
+
+    $response->assertNotFound();
 });
