@@ -5,34 +5,31 @@ namespace App\Actions\Fortify;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 
-class CreateNewUser implements CreatesNewUsers
+class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
-    use PasswordValidationRules;
-
     /**
-     * Validate and create a newly registered user.
+     * Validate and update the given user's profile information.
      *
      * @param  array<string, string>  $input
      */
-    public function create(array $input): User
+    public function update(User $user, array $input): void
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
+
             'phone' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique(User::class),
+                Rule::unique('users')->ignore($user->id),
             ],
-            'password' => $this->passwordRules(),
-        ])->validate();
+        ])->validateWithBag('updateProfileInformation');
 
-        return User::create([
+        $user->forceFill([
             'name' => $input['name'],
             'phone' => $input['phone'],
-            'password' => $input['password'],
-        ]);
+        ])->save();
     }
 }
