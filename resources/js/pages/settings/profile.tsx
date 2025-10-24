@@ -22,6 +22,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Profile() {
     const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
+
+    if (!user) {
+        return null;
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -49,7 +54,7 @@ export default function Profile() {
                                     <Input
                                         id="name"
                                         className="mt-1 block w-full"
-                                        defaultValue={auth.user.name}
+                                        defaultValue={user.name}
                                         name="name"
                                         required
                                         autoComplete="name"
@@ -69,7 +74,7 @@ export default function Profile() {
                                         id="phone"
                                         type="tel"
                                         className="mt-1 block w-full"
-                                        defaultValue={auth.user.phone}
+                                        defaultValue={user.phone}
                                         name="phone"
                                         required
                                         autoComplete="tel"

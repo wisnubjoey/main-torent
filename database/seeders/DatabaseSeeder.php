@@ -19,5 +19,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'password' => 'password',
         ]);
+
+        $this->call(AdminUserSeeder::class);
     }
 }
