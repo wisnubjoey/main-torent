@@ -15,7 +15,7 @@ interface LoginProps {
     canRegister: boolean;
 }
 
-export default function Login({ status, canRegister }: LoginProps) {
+export default function Login({ canRegister }: LoginProps) {
     return (
         <AuthLayout
             title="Log in to your account"
@@ -60,44 +60,44 @@ export default function Login({ status, canRegister }: LoginProps) {
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
-                                <Label htmlFor="remember">Remember me</Label>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="remember" name="remember" />
+                                <Label
+                                    htmlFor="remember"
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                    Remember me
+                                </Label>
                             </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-4 w-full"
-                                tabIndex={4}
-                                disabled={processing}
-                                data-test="login-button"
-                            >
-                                {processing && <Spinner />}
-                                Log in
-                            </Button>
                         </div>
 
-                        {canRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
-                                Don't have an account?{' '}
-                                <TextLink href={register()} tabIndex={5}>
-                                    Sign up
-                                </TextLink>
-                            </div>
-                        )}
+                        <div className="flex flex-col gap-6">
+                            <Button
+                                disabled={processing}
+                                tabIndex={3}
+                                data-test="login-button"
+                            >
+                                {processing && (
+                                    <Spinner className="mr-2 size-4" />
+                                )}
+                                Log in
+                            </Button>
+
+                            {canRegister && (
+                                <div className="text-center text-sm">
+                                    Don't have an account?{' '}
+                                    <TextLink
+                                        href={register().url}
+                                        tabIndex={4}
+                                    >
+                                        Register
+                                    </TextLink>
+                                </div>
+                            )}
+                        </div>
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </AuthLayout>
     );
 }

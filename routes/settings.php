@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
         ->name('user-password.update');
 
     Route::get('settings/appearance', function () {
-        return Inertia::render('settings/appearance');
+        return Inertia::render('user/settings/appearance');
     })->name('appearance.edit');
 
 });

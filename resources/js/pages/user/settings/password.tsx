@@ -121,7 +121,7 @@ export default function Password() {
                                         disabled={processing}
                                         data-test="update-password-button"
                                     >
-                                        Save password
+                                        Save
                                     </Button>
 
                                     <Transition
@@ -131,8 +131,8 @@ export default function Password() {
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">
-                                            Saved
+                                        <p className="text-sm text-muted-foreground">
+                                            Saved.
                                         </p>
                                     </Transition>
                                 </div>

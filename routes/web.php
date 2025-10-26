@@ -8,9 +8,20 @@ Route::get('/', function () {
     return Inertia::render('landing');
 })->name('home');
 
+// Guest routes for authentication
+Route::middleware('guest')->group(function () {
+    Route::get('login', function () {
+        return Inertia::render('user/auth/login');
+    })->name('login');
+    
+    Route::get('register', function () {
+        return Inertia::render('user/auth/register');
+    })->name('register');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        return Inertia::render('user/dashboard');
     })->name('dashboard');
 });
 
