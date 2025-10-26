@@ -102,17 +102,17 @@ export default function Profile() {
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">
-                                            Saved
+                                        <p className="text-sm text-muted-foreground">
+                                            Saved.
                                         </p>
                                     </Transition>
                                 </div>
                             </>
                         )}
                     </Form>
-                </div>
 
-                <DeleteUser />
+                    <DeleteUser />
+                </div>
             </SettingsLayout>
         </AppLayout>
     );

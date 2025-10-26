@@ -55,7 +55,10 @@ export default function Register() {
                                     name="phone"
                                     placeholder="555 000 0000"
                                 />
-                                <InputError message={errors.phone} />
+                                <InputError
+                                    message={errors.phone}
+                                    className="mt-2"
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -69,7 +72,10 @@ export default function Register() {
                                     name="password"
                                     placeholder="Password"
                                 />
-                                <InputError message={errors.password} />
+                                <InputError
+                                    message={errors.password}
+                                    className="mt-2"
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -87,25 +93,29 @@ export default function Register() {
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
+                                    className="mt-2"
                                 />
                             </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={5}
-                                data-test="register-user-button"
-                            >
-                                {processing && <Spinner />}
-                                Create account
-                            </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                Log in
-                            </TextLink>
+                        <div className="flex flex-col gap-6">
+                            <Button
+                                disabled={processing}
+                                tabIndex={5}
+                                data-test="register-button"
+                            >
+                                {processing && (
+                                    <Spinner className="mr-2 size-4" />
+                                )}
+                                Register
+                            </Button>
+
+                            <div className="text-center text-sm">
+                                Already have an account?{' '}
+                                <TextLink href={login().url} tabIndex={6}>
+                                    Log in
+                                </TextLink>
+                            </div>
                         </div>
                     </>
                 )}
