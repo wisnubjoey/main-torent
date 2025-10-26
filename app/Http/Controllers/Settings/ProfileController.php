@@ -17,7 +17,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('settings/profile', [
+        return Inertia::render('user/settings/profile', [
             'status' => $request->session()->get('status'),
         ]);
     }
