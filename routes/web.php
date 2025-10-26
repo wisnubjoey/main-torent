@@ -23,6 +23,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('user/dashboard');
     })->name('dashboard');
+    
+    Route::get('confirm-password', function () {
+        return Inertia::render('user/auth/confirm-password');
+    })->name('password.confirm');
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
