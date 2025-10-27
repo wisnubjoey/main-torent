@@ -46,6 +46,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             return Inertia::render('admin/user-management/index');
         })->name('user-management');
 
+        Route::get('vehicle-management', [App\Http\Controllers\Admin\VehicleController::class, 'index'])->name('vehicle-management');
+        Route::post('vehicle-management', [App\Http\Controllers\Admin\VehicleController::class, 'store'])->name('vehicle-management.store');
+        Route::put('vehicle-management/{vehicle}', [App\Http\Controllers\Admin\VehicleController::class, 'update'])->name('vehicle-management.update');
+        Route::delete('vehicle-management/{vehicle}', [App\Http\Controllers\Admin\VehicleController::class, 'destroy'])->name('vehicle-management.destroy');
+
         Route::post('logout', [AdminAuthenticatedSessionController::class, 'destroy'])
             ->name('logout');
     });

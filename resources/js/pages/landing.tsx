@@ -288,7 +288,7 @@ export default function Landing() {
                                     href={login()}
                                     className="text-muted-foreground transition hover:text-primary"
                                 >
-                                    Client Login
+                                    Login
                                 </Link>
                             )}
                             <Button className="hidden sm:inline-flex" size="sm">
