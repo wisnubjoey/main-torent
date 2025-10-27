@@ -43,14 +43,14 @@ const adminNavItems: NavItem[] = [
         icon: LayoutDashboard,
     },
     {
+        title: 'Vehicle Management',
+        href: '/admin/vehicle-management',
+        icon: ShieldCheck,
+    },
+    {
         title: 'User Management',
         href: '/admin/user-management',
         icon: Users,
-    },
-    {
-        title: 'Security',
-        href: '/admin/security',
-        icon: ShieldCheck,
     },
     {
         title: 'Settings',
