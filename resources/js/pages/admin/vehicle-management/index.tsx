@@ -1,7 +1,7 @@
 import AdminLayout from '@/layouts/admin/AdminLayout';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
+import { useVehicleManagement } from '@/hooks/vehicle-management-hooks/use-vehicle-management';
 
 // Define a simple toast function as a placeholder
 const toast = (props: { title: string; description: string; variant?: 'default' | 'destructive' }) => {
@@ -72,13 +73,19 @@ interface VehicleFormData {
 }
 
 export default function VehicleManagement({ vehicles: initialVehicles }: Props) {
-    // State for vehicles
-    const [vehicles] = useState<Vehicle[]>(initialVehicles || []);
+    // Use the vehicle management hook
+    const {
+        vehicles,
+        isDeleteDialogOpen,
+        setIsDeleteDialogOpen,
+        currentVehicle,
+        setCurrentVehicle,
+        handleDelete,
+        handleDeleteConfirm
+    } = useVehicleManagement(initialVehicles);
 
     // State for the form
     const [isOpen, setIsOpen] = useState(false);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [currentVehicle, setCurrentVehicle] = useState<Vehicle | null>(null);
 
     // Default form values
     const defaultFormValues: VehicleFormData = {
@@ -151,22 +158,6 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
         }
     };
 
-    // Delete a vehicle
-    const handleDelete = () => {
-        if (currentVehicle) {
-            router.delete(route('admin.vehicle-management.destroy', currentVehicle.id), {
-                onSuccess: () => {
-                    setIsDeleteDialogOpen(false);
-                    setCurrentVehicle(null);
-                    toast({
-                        title: 'Success',
-                        description: 'Vehicle deleted successfully',
-                    });
-                },
-            });
-        }
-    };
-
     // Open form for editing
     const handleEdit = (vehicle: Vehicle) => {
         setCurrentVehicle(vehicle);
@@ -186,12 +177,6 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
         setCurrentVehicle(null);
         reset();
         setIsOpen(true);
-    };
-
-    // Open delete confirmation
-    const handleDeleteConfirm = (vehicle: Vehicle) => {
-        setCurrentVehicle(vehicle);
-        setIsDeleteDialogOpen(true);
     };
 
     return (
