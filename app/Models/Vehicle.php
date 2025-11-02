@@ -4,29 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Vehicle extends Model
-{
-    use HasFactory;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+class Vehicle extends Model {
+    public $timestamps = false;
     protected $fillable = [
-        'name',
-        'model',
-        'year',
-        'license_plate',
+        'vehicle_type','vehicle_class','brand','model','production_year','plate_no','vin',
+        'seat_count','transmission','engine_spec','base_daily_rate','status'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'year' => 'integer',
-    ];
+    // Spesifikasi 1-1 per kelas
+    public function vacation(): HasOne { return $this->hasOne(VehicleSpecVacation::class); }
+    public function sport(): HasOne { return $this->hasOne(VehicleSpecSport::class); }
+    public function luxury(): HasOne { return $this->hasOne(VehicleSpecLuxury::class); }
 }
