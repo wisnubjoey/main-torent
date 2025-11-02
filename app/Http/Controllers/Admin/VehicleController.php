@@ -133,8 +133,10 @@ class VehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle)
     {
-        // The related specs will be automatically deleted due to the onDelete('cascade') in the migration
         $vehicle->delete();
-        return response()->json(['success' => true]);
+ 
+        return redirect()
+            ->back()
+            ->with('success', 'Vehicle deleted successfully');
     }
 }
