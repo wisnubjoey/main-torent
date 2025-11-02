@@ -7,12 +7,6 @@ Purpose : Extract ALL business logic from the main component. Each hook has a sp
 - use-vehicle-management.ts : Modal states, current vehicle, CRUD orchestration
 - use-vehicle-form.ts : Form data, validation, input handlers
 - use-vehicle-api.ts : API calls, route generation, success/error handling
-### 2. Vehicle Management Types (/types/vehicle-management-types/)
-Purpose : Centralized type definitions for vehicle management feature:
-
-- vehicle-form.ts : VehicleFormData , form validation types
-- vehicle-state.ts : Modal states, UI state types
-- vehicle-api.ts : API request/response interfaces
 ### 3. Main Page Component (/pages/admin/vehicle-management/)
 Purpose :
 

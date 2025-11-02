@@ -1,8 +1,7 @@
 import AdminLayout from '@/layouts/admin/AdminLayout';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -41,11 +40,7 @@ import { Label } from '@/components/ui/label';
 import { PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { useVehicleManagement } from '@/hooks/vehicle-management-hooks/use-vehicle-management';
-
-// Define a simple toast function as a placeholder
-const toast = (props: { title: string; description: string; variant?: 'default' | 'destructive' }) => {
-    console.log(`${props.title}: ${props.description}`);
-};
+import { useVehicleForm } from '@/hooks/vehicle-management-hooks/use-vehicle-form';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -62,122 +57,31 @@ interface Props {
     vehicles: Vehicle[];
 }
 
-// Simplified Vehicle type for the form
-interface VehicleFormData {
-    brand: string;
-    model: string;
-    production_year: number;
-    plate_no: string;
-    base_daily_rate: number;
-    status: 'active' | 'maintenance' | 'retired';
-}
-
 export default function VehicleManagement({ vehicles: initialVehicles }: Props) {
     // Use the vehicle management hook
     const {
         vehicles,
         isDeleteDialogOpen,
         setIsDeleteDialogOpen,
-        currentVehicle,
-        setCurrentVehicle,
+        currentVehicle: deleteVehicle,
         handleDelete,
         handleDeleteConfirm
     } = useVehicleManagement(initialVehicles);
 
-    // State for the form
-    const [isOpen, setIsOpen] = useState(false);
-
-    // Default form values
-    const defaultFormValues: VehicleFormData = {
-        brand: '',
-        model: '',
-        production_year: new Date().getFullYear(),
-        plate_no: '',
-        base_daily_rate: 0,
-        status: 'active'
-    };
-
-    // Inertia form for creating/updating vehicles
-    const { data, setData, post, put, processing, errors, reset } = useForm<VehicleFormData>(defaultFormValues);
-
-    // Handle form input changes
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type } = e.target;
-        
-        if (type === 'number') {
-            setData(name as keyof typeof data, parseFloat(value));
-        } else {
-            setData(name as keyof typeof data, value);
-        }
-    };
-
-    // Handle select changes
-    const handleSelectChange = (name: string, value: string) => {
-        setData(name as keyof typeof data, value);
-    };
-
-    // Helper function to generate route URLs
-    const route = (name: string, params?: unknown): string => {
-        if (name === 'admin.vehicle-management.update') {
-            return `/admin/vehicle-management/${params}`;
-        } else if (name === 'admin.vehicle-management.store') {
-            return '/admin/vehicle-management';
-        } else if (name === 'admin.vehicle-management.destroy') {
-            return `/admin/vehicle-management/${params}`;
-        }
-        return '/admin/vehicle-management';
-    };
-
-    // Submit form for creating/updating vehicles
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (currentVehicle) {
-            put(route('admin.vehicle-management.update', currentVehicle.id), {
-                onSuccess: () => {
-                    setIsOpen(false);
-                    reset();
-                    setCurrentVehicle(null);
-                    toast({
-                        title: 'Success',
-                        description: 'Vehicle updated successfully',
-                    });
-                },
-            });
-        } else {
-            post(route('admin.vehicle-management.store'), {
-                onSuccess: () => {
-                    setIsOpen(false);
-                    reset();
-                    toast({
-                        title: 'Success',
-                        description: 'Vehicle created successfully',
-                    });
-                },
-            });
-        }
-    };
-
-    // Open form for editing
-    const handleEdit = (vehicle: Vehicle) => {
-        setCurrentVehicle(vehicle);
-        setData({
-            brand: vehicle.brand,
-            model: vehicle.model,
-            production_year: vehicle.production_year,
-            plate_no: vehicle.plate_no,
-            base_daily_rate: vehicle.base_daily_rate,
-            status: vehicle.status as 'active' | 'maintenance' | 'retired',
-        });
-        setIsOpen(true);
-    };
-
-    // Open form for creating
-    const handleCreate = () => {
-        setCurrentVehicle(null);
-        reset();
-        setIsOpen(true);
-    };
+    // Use the vehicle form hook
+    const {
+        isOpen,
+        setIsOpen,
+        currentVehicle,
+        data,
+        errors,
+        processing,
+        handleChange,
+        handleSelectChange,
+        handleSubmit,
+        handleEdit,
+        handleCreate
+    } = useVehicleForm();
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
@@ -188,14 +92,9 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                     <h1 className="text-2xl font-bold">Vehicle Management</h1>
 
                     <div className="flex gap-2">
-                        <Button onClick={undefined}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Vehicle
-                        </Button>
-
                         <Button onClick={handleCreate}>
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Brand
+                            Add Vehicle
                         </Button>
                     </div>
 
@@ -391,7 +290,7 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                             <AlertDialogDescription>
                                 This action cannot be undone. This will permanently delete the vehicle
-                                {currentVehicle && ` "${currentVehicle.brand} ${currentVehicle.model}"`}.
+                                {deleteVehicle && ` "${deleteVehicle.brand} ${deleteVehicle.model}"`}.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
