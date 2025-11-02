@@ -27,21 +27,23 @@ class VehicleRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
+            'brand' => ['required', 'string', 'max:255'],
             'model' => ['required', 'string', 'max:255'],
-            'year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
-            'license_plate' => [
+            'production_year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'plate_no' => [
                 'required',
                 'string',
                 'max:20',
-                Rule::unique('vehicles', 'license_plate'),
+                Rule::unique('vehicles', 'plate_no'),
             ],
+            'base_daily_rate' => ['required', 'numeric', 'min:0'],
+            'status' => ['required', 'string', 'in:active,maintenance,retired'],
         ];
 
         // If this is an update request, exclude the current vehicle from unique validation
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
             $vehicleId = $this->route('vehicle');
-            $rules['license_plate'][3] = Rule::unique('vehicles', 'license_plate')->ignore($vehicleId);
+            $rules['plate_no'][3] = Rule::unique('vehicles', 'plate_no')->ignore($vehicleId);
         }
 
         return $rules;
@@ -55,14 +57,19 @@ class VehicleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'The vehicle name is required.',
+            'brand.required' => 'The vehicle brand is required.',
             'model.required' => 'The vehicle model is required.',
-            'year.required' => 'The vehicle year is required.',
-            'year.integer' => 'The vehicle year must be a valid year.',
-            'year.min' => 'The vehicle year must be at least 1900.',
-            'year.max' => 'The vehicle year cannot be in the future.',
-            'license_plate.required' => 'The license plate is required.',
-            'license_plate.unique' => 'This license plate is already registered.',
+            'production_year.required' => 'The production year is required.',
+            'production_year.integer' => 'The production year must be a valid year.',
+            'production_year.min' => 'The production year must be at least 1900.',
+            'production_year.max' => 'The production year cannot be in the future.',
+            'plate_no.required' => 'The plate number is required.',
+            'plate_no.unique' => 'This plate number is already registered.',
+            'base_daily_rate.required' => 'The daily rate is required.',
+            'base_daily_rate.numeric' => 'The daily rate must be a number.',
+            'base_daily_rate.min' => 'The daily rate must be at least 0.',
+            'status.required' => 'The vehicle status is required.',
+            'status.in' => 'The vehicle status must be active, maintenance, or retired.',
         ];
     }
 }
