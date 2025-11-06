@@ -53,11 +53,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface Brand { id: number; name: string }
+interface VehicleClass { id: number; name: string }
 interface Props {
     vehicles: Vehicle[];
+    brands: Brand[];
+    classes: VehicleClass[];
 }
 
-export default function VehicleManagement({ vehicles: initialVehicles }: Props) {
+export default function VehicleManagement({ vehicles: initialVehicles, brands, classes }: Props) {
     // Use the vehicle management hook
     const {
         vehicles,
@@ -96,6 +100,12 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Add Vehicle
                         </Button>
+                        <Button variant="outline" asChild>
+                            <a href="/admin/brand-management">Manage Brands</a>
+                        </Button>
+                        <Button variant="outline" asChild>
+                            <a href="/admin/vehicle-class-management">Manage Classes</a>
+                        </Button>
                     </div>
 
                 </div>
@@ -110,7 +120,6 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                                 <TableHead>Model</TableHead>
                                 <TableHead>Year</TableHead>
                                 <TableHead>Plate No.</TableHead>
-                                <TableHead>Daily Rate</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -129,7 +138,6 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                                         <TableCell>{vehicle.model}</TableCell>
                                         <TableCell>{vehicle.production_year}</TableCell>
                                         <TableCell>{vehicle.plate_no}</TableCell>
-                                        <TableCell>${vehicle.base_daily_rate}</TableCell>
                                         <TableCell>
                                             <span className={`px-2 py-1 rounded-full text-xs ${
                                                 vehicle.status === 'active' 
@@ -179,12 +187,20 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="brand">Brand</Label>
-                                    <Input
-                                        id="brand"
+                                    <Select
                                         name="brand"
                                         value={data.brand}
-                                        onChange={handleChange}
-                                    />
+                                        onValueChange={(value) => handleSelectChange('brand', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select brand" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {brands.map((b) => (
+                                                <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {errors.brand && (
                                         <p className="text-red-500 text-sm">{errors.brand}</p>
                                     )}
@@ -218,6 +234,27 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                                 </div>
                                 
                                 <div className="space-y-2">
+                                    <Label htmlFor="vehicle_class">Vehicle Class</Label>
+                                    <Select
+                                        name="vehicle_class"
+                                        value={data.vehicle_class}
+                                        onValueChange={(value) => handleSelectChange('vehicle_class', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select class" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {classes.map((c) => (
+                                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.vehicle_class && (
+                                        <p className="text-red-500 text-sm">{errors.vehicle_class}</p>
+                                    )}
+                                </div>
+                                
+                                <div className="space-y-2">
                                     <Label htmlFor="plate_no">Plate Number</Label>
                                     <Input
                                         id="plate_no"
@@ -229,22 +266,7 @@ export default function VehicleManagement({ vehicles: initialVehicles }: Props) 
                                         <p className="text-red-500 text-sm">{errors.plate_no}</p>
                                     )}
                                 </div>
-                                
-                                <div className="space-y-2">
-                                    <Label htmlFor="base_daily_rate">Base Daily Rate</Label>
-                                    <Input
-                                        id="base_daily_rate"
-                                        name="base_daily_rate"
-                                        type="number"
-                                        step="0.01"
-                                        value={data.base_daily_rate}
-                                        onChange={handleChange}
-                                    />
-                                    {errors.base_daily_rate && (
-                                        <p className="text-red-500 text-sm">{errors.base_daily_rate}</p>
-                                    )}
-                                </div>
-                                
+
                                 <div className="space-y-2">
                                     <Label htmlFor="status">Status</Label>
                                     <Select 

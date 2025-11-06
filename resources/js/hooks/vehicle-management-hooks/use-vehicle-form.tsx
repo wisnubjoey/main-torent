@@ -10,10 +10,10 @@ const toast = (props: { title: string; description: string; variant?: 'default' 
 // Simplified Vehicle type for the form
 interface VehicleFormData {
     brand: string;
+    vehicle_class: string;
     model: string;
     production_year: number;
     plate_no: string;
-    base_daily_rate: number;
     status: 'active' | 'maintenance' | 'retired';
 }
 
@@ -25,10 +25,10 @@ export function useVehicleForm(initialVehicle: Vehicle | null = null) {
     // Default form values
     const defaultFormValues: VehicleFormData = {
         brand: '',
+        vehicle_class: 'luxury',
         model: '',
         production_year: new Date().getFullYear(),
         plate_no: '',
-        base_daily_rate: 0,
         status: 'active'
     };
 
@@ -36,10 +36,10 @@ export function useVehicleForm(initialVehicle: Vehicle | null = null) {
     const { data, setData, post, put, processing, errors, reset } = useForm<VehicleFormData>(
         currentVehicle ? {
             brand: currentVehicle.brand,
+            vehicle_class: currentVehicle.vehicle_class,
             model: currentVehicle.model,
             production_year: currentVehicle.production_year,
             plate_no: currentVehicle.plate_no,
-            base_daily_rate: currentVehicle.base_daily_rate,
             status: currentVehicle.status as 'active' | 'maintenance' | 'retired',
         } : defaultFormValues
     );
@@ -105,10 +105,10 @@ export function useVehicleForm(initialVehicle: Vehicle | null = null) {
         setCurrentVehicle(vehicle);
         setData({
             brand: vehicle.brand,
+            vehicle_class: vehicle.vehicle_class,
             model: vehicle.model,
             production_year: vehicle.production_year,
             plate_no: vehicle.plate_no,
-            base_daily_rate: vehicle.base_daily_rate,
             status: vehicle.status as 'active' | 'maintenance' | 'retired',
         });
         setIsOpen(true);

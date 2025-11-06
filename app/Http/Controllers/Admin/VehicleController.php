@@ -5,9 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\VehicleRequest;
 use App\Models\Vehicle;
-use App\Models\VehicleSpecLuxury;
-use App\Models\VehicleSpecSport;
-use App\Models\VehicleSpecVacation;
+use App\Models\Brand;
+use App\Models\VehicleClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -22,8 +21,12 @@ class VehicleController extends Controller
     public function index()
     {
         $vehicles = Vehicle::all();
+        $brands = Brand::orderBy('name')->get(['id','name']);
+        $classes = VehicleClass::orderBy('name')->get(['id','name']);
         return Inertia::render('admin/vehicle-management/index', [
-            'vehicles' => $vehicles
+            'vehicles' => $vehicles,
+            'brands' => $brands,
+            'classes' => $classes,
         ]);
     }
 
@@ -62,23 +65,7 @@ class VehicleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Vehicle $vehicle)
-    {
-        // Load the appropriate specs based on vehicle class
-        switch ($vehicle->vehicle_class) {
-            case 'luxury':
-                $vehicle->load('luxury');
-                break;
-            case 'sport':
-                $vehicle->load('sport');
-                break;
-            case 'vacation':
-                $vehicle->load('vacation');
-                break;
-        }
-        
-        return response()->json($vehicle);
-    }
+    // show() is unused by routes; removing specs-related loading for simplification
 
     /**
      * Update the specified resource in storage.
@@ -87,38 +74,10 @@ class VehicleController extends Controller
     {
         $validated = $request->validated();
         
-        // Extract specs data based on vehicle class
-        $specsData = [];
-        if (isset($validated['specs']) && is_array($validated['specs'])) {
-            $specsData = $validated['specs'];
-            unset($validated['specs']);
-        }
-        
         DB::beginTransaction();
         try {
             // Update the vehicle
             $vehicle->update($validated);
-            
-            // Update the appropriate spec based on vehicle class
-            if ($vehicle->vehicle_class === 'luxury' && isset($specsData['luxury'])) {
-                if ($vehicle->luxury) {
-                    $vehicle->luxury->update($specsData['luxury']);
-                } else {
-                    $vehicle->luxury()->create($specsData['luxury']);
-                }
-            } elseif ($vehicle->vehicle_class === 'sport' && isset($specsData['sport'])) {
-                if ($vehicle->sport) {
-                    $vehicle->sport->update($specsData['sport']);
-                } else {
-                    $vehicle->sport()->create($specsData['sport']);
-                }
-            } elseif ($vehicle->vehicle_class === 'vacation' && isset($specsData['vacation'])) {
-                if ($vehicle->vacation) {
-                    $vehicle->vacation->update($specsData['vacation']);
-                } else {
-                    $vehicle->vacation()->create($specsData['vacation']);
-                }
-            }
             
             DB::commit();
             return redirect()->back()->with('success', 'Vehicle updated successfully');
