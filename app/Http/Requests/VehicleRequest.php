@@ -27,6 +27,7 @@ class VehicleRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
+            'vehicle_class' => ['required', 'string', 'max:255'],
             'brand' => ['required', 'string', 'max:255'],
             'model' => ['required', 'string', 'max:255'],
             'production_year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
@@ -36,7 +37,7 @@ class VehicleRequest extends FormRequest
                 'max:20',
                 Rule::unique('vehicles', 'plate_no'),
             ],
-            'base_daily_rate' => ['required', 'numeric', 'min:0'],
+            // Pricing removed for simplification; no base_daily_rate validation
             'status' => ['required', 'string', 'in:active,maintenance,retired'],
         ];
 
@@ -57,6 +58,7 @@ class VehicleRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'vehicle_class.required' => 'The vehicle class is required.',
             'brand.required' => 'The vehicle brand is required.',
             'model.required' => 'The vehicle model is required.',
             'production_year.required' => 'The production year is required.',
@@ -65,9 +67,6 @@ class VehicleRequest extends FormRequest
             'production_year.max' => 'The production year cannot be in the future.',
             'plate_no.required' => 'The plate number is required.',
             'plate_no.unique' => 'This plate number is already registered.',
-            'base_daily_rate.required' => 'The daily rate is required.',
-            'base_daily_rate.numeric' => 'The daily rate must be a number.',
-            'base_daily_rate.min' => 'The daily rate must be at least 0.',
             'status.required' => 'The vehicle status is required.',
             'status.in' => 'The vehicle status must be active, maintenance, or retired.',
         ];

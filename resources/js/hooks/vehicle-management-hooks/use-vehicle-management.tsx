@@ -8,9 +8,9 @@ const toast = (props: { title: string; description: string; variant?: 'default' 
 };
 
 export function useVehicleManagement(initialVehicles: Vehicle[]) {
-    // State for vehicles
-    const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles || []);
-    
+    // Derive vehicles directly from props to avoid stale state after navigation
+    const vehicles = initialVehicles || [];
+
     // State for modal dialogs
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [currentVehicle, setCurrentVehicle] = useState<Vehicle | null>(null);
@@ -27,20 +27,15 @@ export function useVehicleManagement(initialVehicles: Vehicle[]) {
         return '/admin/vehicle-management';
     };
 
-    // Delete a vehicle
+    // Delete a vehicle (server handles persistence; page re-renders with fresh props)
     const handleDelete = () => {
         if (currentVehicle) {
             router.delete(route('admin.vehicle-management.destroy', currentVehicle.id), {
                 onSuccess: () => {
-                    // Update the vehicles state by filtering out the deleted vehicle
-                    setVehicles(vehicles.filter(vehicle => vehicle.id !== currentVehicle.id));
                     setIsDeleteDialogOpen(false);
                     setCurrentVehicle(null);
-                    toast({
-                        title: 'Success',
-                        description: 'Vehicle deleted successfully',
-                    });
-                }
+                    toast({ title: 'Success', description: 'Vehicle deleted successfully' });
+                },
             });
         }
     };
@@ -58,6 +53,6 @@ export function useVehicleManagement(initialVehicles: Vehicle[]) {
         currentVehicle,
         setCurrentVehicle,
         handleDelete,
-        handleDeleteConfirm
+        handleDeleteConfirm,
     };
 }
