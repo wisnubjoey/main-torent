@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\VehicleClass;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
@@ -33,5 +34,20 @@ class VehicleClassController extends Controller
     {
         $vehicleClass->delete();
         return redirect()->back()->with('success', 'Vehicle class deleted');
+    }
+
+    public function update(Request $request, VehicleClass $vehicleClass)
+    {
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('vehicle_classes', 'name')->ignore($vehicleClass->id),
+            ],
+        ]);
+
+        $vehicleClass->update($validated);
+        return redirect()->back()->with('success', 'Vehicle class updated');
     }
 }

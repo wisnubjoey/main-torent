@@ -41,6 +41,7 @@ import { PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { useVehicleManagement } from '@/hooks/vehicle-management-hooks/use-vehicle-management';
 import { useVehicleForm } from '@/hooks/vehicle-management-hooks/use-vehicle-form';
+import { useBrandClassManagement } from '@/hooks/vehicle-management-hooks/use-brand-class-management';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -87,6 +88,29 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
         handleCreate
     } = useVehicleForm();
 
+    const {
+        isBrandDialogOpen,
+        isClassDialogOpen,
+        editingBrand,
+        editingClass,
+        brandName,
+        className,
+        brandProcessing,
+        classProcessing,
+        setIsBrandDialogOpen,
+        setIsClassDialogOpen,
+        setBrandName,
+        setClassName,
+        openCreateBrand,
+        openEditBrand,
+        submitBrand,
+        deleteBrand,
+        openCreateClass,
+        openEditClass,
+        submitClass,
+        deleteClass,
+    } = useBrandClassManagement();
+
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
             <Head title="Vehicle Management" />
@@ -100,16 +124,65 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Add Vehicle
                         </Button>
-                        <Button variant="outline" asChild>
-                            <a href="/admin/brand-management">Manage Brands</a>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <a href="/admin/vehicle-class-management">Manage Classes</a>
-                        </Button>
+                        <Button variant="outline" onClick={openCreateBrand}>Add Brand</Button>
+                        <Button variant="outline" onClick={openCreateClass}>Add Class</Button>
                     </div>
 
                 </div>
-                
+
+                {/* Brands and Classes lists */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-background rounded-lg shadow border p-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="text-lg font-semibold">Brands</h2>
+                        </div>
+                        {brands.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No brands found</p>
+                        ) : (
+                            <ul className="divide-y">
+                                {brands.map((b) => (
+                                    <li key={b.id} className="flex items-center justify-between py-2">
+                                        <span>{b.name}</span>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => openEditBrand(b)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => deleteBrand(b)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    <div className="bg-background rounded-lg shadow border p-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="text-lg font-semibold">Vehicle Classes</h2>
+                        </div>
+                        {classes.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No classes found</p>
+                        ) : (
+                            <ul className="divide-y">
+                                {classes.map((c) => (
+                                    <li key={c.id} className="flex items-center justify-between py-2">
+                                        <span>{c.name}</span>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => openEditClass(c)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => deleteClass(c)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+
                 
                 {/* Vehicle Table */}
                 <div className="bg-background rounded-lg shadow overflow-hidden border">
@@ -120,6 +193,11 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                 <TableHead>Model</TableHead>
                                 <TableHead>Year</TableHead>
                                 <TableHead>Plate No.</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Class</TableHead>
+                                <TableHead>Seats</TableHead>
+                                <TableHead>Transmission</TableHead>
+                                <TableHead>Engine Spec</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -127,7 +205,7 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                         <TableBody>
                             {vehicles.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-4">
+                                    <TableCell colSpan={11} className="text-center py-4">
                                         No vehicles found
                                     </TableCell>
                                 </TableRow>
@@ -138,6 +216,11 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                         <TableCell>{vehicle.model}</TableCell>
                                         <TableCell>{vehicle.production_year}</TableCell>
                                         <TableCell>{vehicle.plate_no}</TableCell>
+                                        <TableCell>{vehicle.vehicle_type}</TableCell>
+                                        <TableCell>{vehicle.vehicle_class}</TableCell>
+                                        <TableCell>{vehicle.seat_count}</TableCell>
+                                        <TableCell>{vehicle.transmission}</TableCell>
+                                        <TableCell>{vehicle.engine_spec}</TableCell>
                                         <TableCell>
                                             <span className={`px-2 py-1 rounded-full text-xs ${
                                                 vehicle.status === 'active' 
@@ -287,6 +370,78 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                         <p className="text-red-500 text-sm">{errors.status}</p>
                                     )}
                                 </div>
+
+                                {/* Seats */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="seat_count">Seats</Label>
+                                    <Input
+                                        id="seat_count"
+                                        name="seat_count"
+                                        type="number"
+                                        value={data.seat_count}
+                                        onChange={handleChange}
+                                    />
+                                    {errors.seat_count && (
+                                        <p className="text-red-500 text-sm">{errors.seat_count}</p>
+                                    )}
+                                </div>
+
+                                {/* Transmission */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="transmission">Transmission</Label>
+                                    <Select
+                                        name="transmission"
+                                        value={data.transmission}
+                                        onValueChange={(value) => handleSelectChange('transmission', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select transmission" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="manual">Manual</SelectItem>
+                                            <SelectItem value="automatic">Automatic</SelectItem>
+                                            <SelectItem value="semi-automatic">Semi-automatic</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.transmission && (
+                                        <p className="text-red-500 text-sm">{errors.transmission}</p>
+                                    )}
+                                </div>
+
+                                {/* Engine Spec */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="engine_spec">Engine Spec</Label>
+                                    <Input
+                                        id="engine_spec"
+                                        name="engine_spec"
+                                        value={data.engine_spec}
+                                        onChange={handleChange}
+                                    />
+                                    {errors.engine_spec && (
+                                        <p className="text-red-500 text-sm">{errors.engine_spec}</p>
+                                    )}
+                                </div>
+
+                                {/* Vehicle Type */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="vehicle_type">Vehicle Type</Label>
+                                    <Select
+                                        name="vehicle_type"
+                                        value={data.vehicle_type}
+                                        onValueChange={(value) => handleSelectChange('vehicle_type', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select vehicle type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="car">Car</SelectItem>
+                                            <SelectItem value="motorcycle">Motorcycle</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.vehicle_type && (
+                                        <p className="text-red-500 text-sm">{errors.vehicle_type}</p>
+                                    )}
+                                </div>
                             </div>
                             
                             <DialogFooter>
@@ -321,6 +476,44 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                {/* Brand Create/Edit Dialog */}
+                <Dialog open={isBrandDialogOpen} onOpenChange={setIsBrandDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{editingBrand ? 'Edit Brand' : 'Add Brand'}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="brand_name">Name</Label>
+                                <Input id="brand_name" value={brandName} onChange={(e) => setBrandName(e.target.value)} />
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsBrandDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={submitBrand} disabled={brandProcessing}>{editingBrand ? 'Update' : 'Create'}</Button>
+                            </DialogFooter>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Vehicle Class Create/Edit Dialog */}
+                <Dialog open={isClassDialogOpen} onOpenChange={setIsClassDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{editingClass ? 'Edit Class' : 'Add Class'}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="class_name">Name</Label>
+                                <Input id="class_name" value={className} onChange={(e) => setClassName(e.target.value)} />
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsClassDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={submitClass} disabled={classProcessing}>{editingClass ? 'Update' : 'Create'}</Button>
+                            </DialogFooter>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AdminLayout>
     );

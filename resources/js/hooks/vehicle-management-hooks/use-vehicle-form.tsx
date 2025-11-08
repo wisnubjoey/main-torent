@@ -15,6 +15,10 @@ interface VehicleFormData {
     production_year: number;
     plate_no: string;
     status: 'active' | 'maintenance' | 'retired';
+    seat_count: number;
+    transmission: 'manual' | 'automatic' | 'semi-automatic';
+    engine_spec: string;
+    vehicle_type: 'car' | 'motorcycle';
 }
 
 export function useVehicleForm(initialVehicle: Vehicle | null = null) {
@@ -29,7 +33,11 @@ export function useVehicleForm(initialVehicle: Vehicle | null = null) {
         model: '',
         production_year: new Date().getFullYear(),
         plate_no: '',
-        status: 'active'
+        status: 'active',
+        seat_count: 4,
+        transmission: 'automatic',
+        engine_spec: '',
+        vehicle_type: 'car'
     };
 
     // Inertia form for creating/updating vehicles
@@ -41,6 +49,10 @@ export function useVehicleForm(initialVehicle: Vehicle | null = null) {
             production_year: currentVehicle.production_year,
             plate_no: currentVehicle.plate_no,
             status: currentVehicle.status as 'active' | 'maintenance' | 'retired',
+            seat_count: (currentVehicle.seat_count ?? 0) as number,
+            transmission: (currentVehicle.transmission ?? 'automatic') as 'manual' | 'automatic' | 'semi-automatic',
+            engine_spec: currentVehicle.engine_spec ?? '',
+            vehicle_type: (currentVehicle.vehicle_type ?? 'car') as 'car' | 'motorcycle',
         } : defaultFormValues
     );
 
@@ -110,6 +122,10 @@ export function useVehicleForm(initialVehicle: Vehicle | null = null) {
             production_year: vehicle.production_year,
             plate_no: vehicle.plate_no,
             status: vehicle.status as 'active' | 'maintenance' | 'retired',
+            seat_count: (vehicle.seat_count ?? 0) as number,
+            transmission: (vehicle.transmission ?? 'automatic') as 'manual' | 'automatic' | 'semi-automatic',
+            engine_spec: vehicle.engine_spec ?? '',
+            vehicle_type: (vehicle.vehicle_type ?? 'car') as 'car' | 'motorcycle',
         });
         setIsOpen(true);
     };
