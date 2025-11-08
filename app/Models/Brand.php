@@ -8,4 +8,8 @@ class Brand extends Model
 {
     public $timestamps = false;
     protected $fillable = ['name'];
+
+    public function vehicles() {
+        return $this->hasMany(Vehicle::class);
+    }
 }

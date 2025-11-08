@@ -20,7 +20,32 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        $vehicles = Vehicle::all();
+        // Load relations and hydrate UI-friendly fields expected by the frontend
+        $vehicles = Vehicle::with(['brand:id,name', 'vehicleClass:id,name'])
+            ->get()
+            ->map(function ($v) {
+                $arr = $v->toArray();
+                // Preserve frontend shape: brand and vehicle_class as strings
+                $arr['brand'] = optional($v->brand)->name ?? '';
+                $arr['vehicle_class'] = optional($v->vehicleClass)->name ?? '';
+                // Remove nested relations to keep payload simple
+                unset($arr['brand_id'], $arr['vehicle_class_id'], $arr['brand'], $arr['vehicle_class']);
+                // Re-add expected fields explicitly
+                return [
+                    'id' => $v->id,
+                    'vehicle_type' => $v->vehicle_type,
+                    'vehicle_class' => optional($v->vehicleClass)->name ?? '',
+                    'brand' => optional($v->brand)->name ?? '',
+                    'model' => $v->model,
+                    'production_year' => $v->production_year,
+                    'plate_no' => $v->plate_no,
+                    'seat_count' => $v->seat_count,
+                    'transmission' => $v->transmission,
+                    'engine_spec' => $v->engine_spec,
+                    'status' => $v->status,
+                    'created_at' => optional($v->created_at)?->toISOString(),
+                ];
+            });
         $brands = Brand::orderBy('name')->get(['id','name']);
         $classes = VehicleClass::orderBy('name')->get(['id','name']);
         return Inertia::render('admin/vehicle-management/index', [
@@ -51,8 +76,27 @@ class VehicleController extends Controller
         }
         
         try {
+            // Map brand and vehicle_class names to IDs (case-insensitive)
+            $brandName = $validated['brand'] ?? null;
+            $className = $validated['vehicle_class'] ?? null;
+
+            $brand = $brandName ? Brand::whereRaw('LOWER(name) = LOWER(?)', [$brandName])->first() : null;
+            if (!$brand) {
+                return redirect()->back()->withErrors(['brand' => 'Unknown brand. Please add it first in Brand Management.']);
+            }
+
+            $vclass = $className ? VehicleClass::whereRaw('LOWER(name) = LOWER(?)', [$className])->first() : null;
+            if (!$vclass) {
+                return redirect()->back()->withErrors(['vehicle_class' => 'Unknown class. Please add it first in Vehicle Class Management.']);
+            }
+
+            $vehicleData = $validated;
+            $vehicleData['brand_id'] = $brand->id;
+            $vehicleData['vehicle_class_id'] = $vclass->id;
+            unset($vehicleData['brand'], $vehicleData['vehicle_class']);
+
             // Create the vehicle
-            $vehicle = Vehicle::create($validated);
+            $vehicle = Vehicle::create($vehicleData);
             Log::info('Created vehicle:', $vehicle->toArray());
             
             return redirect()->back()->with('success', 'Vehicle created successfully')->with('vehicle', $vehicle);
@@ -76,8 +120,32 @@ class VehicleController extends Controller
         
         DB::beginTransaction();
         try {
+            // Map brand and vehicle_class names to IDs (case-insensitive)
+            $brandName = $validated['brand'] ?? null;
+            $className = $validated['vehicle_class'] ?? null;
+
+            $vehicleData = $validated;
+
+            if ($brandName !== null) {
+                $brand = Brand::whereRaw('LOWER(name) = LOWER(?)', [$brandName])->first();
+                if (!$brand) {
+                    return redirect()->back()->withErrors(['brand' => 'Unknown brand. Please add it first in Brand Management.']);
+                }
+                $vehicleData['brand_id'] = $brand->id;
+            }
+
+            if ($className !== null) {
+                $vclass = VehicleClass::whereRaw('LOWER(name) = LOWER(?)', [$className])->first();
+                if (!$vclass) {
+                    return redirect()->back()->withErrors(['vehicle_class' => 'Unknown class. Please add it first in Vehicle Class Management.']);
+                }
+                $vehicleData['vehicle_class_id'] = $vclass->id;
+            }
+
+            unset($vehicleData['brand'], $vehicleData['vehicle_class']);
+
             // Update the vehicle
-            $vehicle->update($validated);
+            $vehicle->update($vehicleData);
             
             DB::commit();
             return redirect()->back()->with('success', 'Vehicle updated successfully');
