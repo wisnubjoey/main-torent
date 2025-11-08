@@ -39,6 +39,12 @@ class VehicleRequest extends FormRequest
             ],
             // Pricing removed for simplification; no base_daily_rate validation
             'status' => ['required', 'string', 'in:active,maintenance,retired'],
+
+            // Newly added fields in the form
+            'seat_count' => ['nullable', 'integer', 'min:1', 'max:99'],
+            'transmission' => ['nullable', 'string', 'in:manual,automatic,semi-automatic'],
+            'engine_spec' => ['nullable', 'string', 'max:1000'],
+            'vehicle_type' => ['nullable', 'string', 'in:car,motorcycle'],
         ];
 
         // If this is an update request, exclude the current vehicle from unique validation
@@ -69,6 +75,14 @@ class VehicleRequest extends FormRequest
             'plate_no.unique' => 'This plate number is already registered.',
             'status.required' => 'The vehicle status is required.',
             'status.in' => 'The vehicle status must be active, maintenance, or retired.',
+
+            // Messages for newly added fields
+            'seat_count.integer' => 'Seats must be a number.',
+            'seat_count.min' => 'Seats must be at least 1.',
+            'seat_count.max' => 'Seats may not be greater than 99.',
+            'transmission.in' => 'Transmission must be manual, automatic, or semi-automatic.',
+            'engine_spec.max' => 'Engine spec may not be greater than 1000 characters.',
+            'vehicle_type.in' => 'Vehicle type must be car or motorcycle.',
         ];
     }
 }

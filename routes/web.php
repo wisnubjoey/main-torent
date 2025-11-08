@@ -49,11 +49,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Brand management
         Route::get('brand-management', [App\Http\Controllers\Admin\BrandController::class, 'index'])->name('brand-management');
         Route::post('brand-management', [App\Http\Controllers\Admin\BrandController::class, 'store'])->name('brand-management.store');
+        Route::put('brand-management/{brand}', [App\Http\Controllers\Admin\BrandController::class, 'update'])->name('brand-management.update');
         Route::delete('brand-management/{brand}', [App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('brand-management.destroy');
 
         // Vehicle class management
         Route::get('vehicle-class-management', [App\Http\Controllers\Admin\VehicleClassController::class, 'index'])->name('vehicle-class-management');
         Route::post('vehicle-class-management', [App\Http\Controllers\Admin\VehicleClassController::class, 'store'])->name('vehicle-class-management.store');
+        Route::put('vehicle-class-management/{vehicleClass}', [App\Http\Controllers\Admin\VehicleClassController::class, 'update'])->name('vehicle-class-management.update');
         Route::delete('vehicle-class-management/{vehicleClass}', [App\Http\Controllers\Admin\VehicleClassController::class, 'destroy'])->name('vehicle-class-management.destroy');
 
         Route::get('vehicle-management', [App\Http\Controllers\Admin\VehicleController::class, 'index'])->name('vehicle-management');
