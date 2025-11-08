@@ -1,5 +1,5 @@
 export type VehicleType = 'car' | 'motorcycle';
-export type VehicleClass = 'luxury' | 'sport' | 'vacation';
+export type VehicleClass = string;
 export type ActiveStatus = 'active' | 'maintenance' | 'retired';
 
 export interface Vehicle {
@@ -7,6 +7,8 @@ export interface Vehicle {
     vehicle_type: VehicleType;
     vehicle_class: VehicleClass;
     brand: string;
+    brand_id?: number;
+    vehicle_class_id?: number;
     model: string;
     production_year: number;
     plate_no: string;
@@ -21,6 +23,8 @@ export interface VehicleFormData {
     vehicle_type: VehicleType;
     vehicle_class: VehicleClass;
     brand: string;
+    brand_id?: number;
+    vehicle_class_id?: number;
     model: string;
     production_year: number;
     plate_no: string;
@@ -41,4 +45,14 @@ export interface VehicleErrors {
     transmission?: string;
     engine_spec?: string;
     status?: string;
+}
+
+export interface BrandOption {
+    id: number;
+    name: string;
+}
+
+export interface VehicleClassOption {
+    id: number;
+    name: string;
 }
