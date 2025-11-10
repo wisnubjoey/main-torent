@@ -37,11 +37,13 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { useVehicleManagement } from '@/hooks/vehicle-management-hooks/use-vehicle-management';
 import { useVehicleForm } from '@/hooks/vehicle-management-hooks/use-vehicle-form';
 import { useBrandClassManagement } from '@/hooks/vehicle-management-hooks/use-brand-class-management';
+import { useVehicleImages } from '@/hooks/vehicle-management-hooks/use-vehicle-images';
+import React from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -110,6 +112,32 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
         submitClass,
         deleteClass,
     } = useBrandClassManagement();
+
+    // Images management via hook
+    const {
+        isImagesDialogOpen,
+        setIsImagesDialogOpen,
+        imagesVehicle,
+        secImages,
+        setSecImages,
+        maxSecondary,
+        imagesBusy,
+        imagesError,
+        primaryFile,
+        setPrimaryFile,
+        primaryAlt,
+        setPrimaryAlt,
+        uploadFiles,
+        setUploadFiles,
+        openImagesDialog,
+        uploadPrimary,
+        deletePrimary,
+        uploadSecondary,
+        deleteSecondary,
+        promoteSecondary,
+        saveAlt,
+        saveReorder,
+    } = useVehicleImages();
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
@@ -240,6 +268,13 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                                     onClick={() => handleEdit(vehicle)}
                                                 >
                                                     <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    onClick={() => openImagesDialog(vehicle)}
+                                                >
+                                                    <ImageIcon className="h-4 w-4" />
                                                 </Button>
                                                 <Button 
                                                     variant="outline" 
@@ -512,6 +547,82 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                 <Button onClick={submitClass} disabled={classProcessing}>{editingClass ? 'Update' : 'Create'}</Button>
                             </DialogFooter>
                         </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Images Management Dialog */}
+                <Dialog open={isImagesDialogOpen} onOpenChange={setIsImagesDialogOpen}>
+                    <DialogContent className="max-w-5xl md:max-w-[900px]">
+                        <DialogHeader>
+                            <DialogTitle>Manage Images{imagesVehicle ? ` — ${imagesVehicle.brand} ${imagesVehicle.model}` : ''}</DialogTitle>
+                        </DialogHeader>
+
+                        {imagesError && <div className="text-red-600 text-sm">{imagesError}</div>}
+
+                        {/* Primary image */}
+                        <section className="border rounded p-6 space-y-4">
+                            <h2 className="font-medium">Primary Image</h2>
+                            <div className="flex items-start gap-6">
+                                <div className="w-64 h-40 bg-gray-100 flex items-center justify-center overflow-hidden rounded">
+                                    {imagesVehicle?.image_url ? (
+                                        <img src={imagesVehicle.image_url} alt={imagesVehicle.primary_image_alt || ''} className="object-cover w-full h-full" />
+                                    ) : (
+                                        <span className="text-gray-400 text-sm">No primary image</span>
+                                    )}
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setPrimaryFile(e.target.files?.[0]||null)} />
+                                    <input type="text" placeholder="Alt text (optional)" value={primaryAlt} onChange={e=>setPrimaryAlt(e.target.value)} className="border rounded px-2 py-1 w-80" />
+                                    <div className="flex gap-2">
+                                        <Button onClick={uploadPrimary} disabled={imagesBusy||!primaryFile}>Upload/Replace</Button>
+                                        <Button variant="destructive" onClick={deletePrimary} disabled={imagesBusy||!imagesVehicle?.image_url}>Delete</Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Secondary images */}
+                        <section className="border rounded p-6 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="font-medium">Secondary Images</h2>
+                                <div className="text-sm text-gray-500">{secImages.length}/{maxSecondary} used</div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e=>setUploadFiles(Array.from(e.target.files||[]))} />
+                                <Button onClick={uploadSecondary} disabled={imagesBusy || uploadFiles.length===0 || (maxSecondary - secImages.length) <= 0}>Upload</Button>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <Button onClick={saveReorder} disabled={imagesBusy} variant="secondary">Save Reorder</Button>
+                                    <span className="text-xs text-gray-500">Positions must be unique and 0–9.</span>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {secImages.map(img => (
+                                        <div key={img.id} className="border rounded p-2 space-y-2">
+                                            <div className="w-full h-36 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
+                                                <img src={img.url} alt={img.alt_text || ''} className="object-cover w-full h-full" />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-xs text-gray-600">Pos</label>
+                                                <input type="number" min={0} max={9} value={img.position} onChange={e=>{
+                                                    const val = parseInt(e.target.value, 10);
+                                                    setSecImages(prev => prev.map(i => i.id===img.id ? { ...i, position: val } : i));
+                                                }} className="border rounded px-2 py-1 w-16" />
+                                            </div>
+                                            <input type="text" placeholder="Alt text" defaultValue={img.alt_text||''} onBlur={e=>saveAlt(img.id, e.currentTarget.value)} className="border rounded px-2 py-1 w-full" />
+                                            <div className="flex gap-2">
+                                                <Button onClick={()=>promoteSecondary(img.id)} disabled={imagesBusy} variant="secondary">Set as Primary</Button>
+                                                <Button onClick={()=>deleteSecondary(img.id)} disabled={imagesBusy} variant="destructive">Delete</Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+
+                        {imagesBusy && <div className="text-sm text-gray-500">Working...</div>}
                     </DialogContent>
                 </Dialog>
             </div>
