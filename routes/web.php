@@ -63,6 +63,31 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('vehicle-management/{vehicle}', [App\Http\Controllers\Admin\VehicleController::class, 'update'])->name('vehicle-management.update');
         Route::delete('vehicle-management/{vehicle}', [App\Http\Controllers\Admin\VehicleController::class, 'destroy'])->name('vehicle-management.destroy');
 
+        // Admin UI page for managing images of a vehicle
+        Route::get('vehicles/{vehicle}/images', [App\Http\Controllers\Admin\VehicleImagePageController::class, 'show'])
+            ->name('vehicle-images.page');
+
+        // Vehicle image management
+        Route::prefix('vehicles/{vehicle}')->group(function () {
+            // Primary image
+            Route::post('primary', [App\Http\Controllers\Admin\VehiclePrimaryImageController::class, 'store'])
+                ->name('vehicle-images.primary.store');
+            Route::delete('primary', [App\Http\Controllers\Admin\VehiclePrimaryImageController::class, 'destroy'])
+                ->name('vehicle-images.primary.destroy');
+
+            // Secondary images
+            Route::post('secondary', [App\Http\Controllers\Admin\VehicleSecondaryImageController::class, 'store'])
+                ->name('vehicle-images.secondary.store');
+            Route::delete('secondary/{image}', [App\Http\Controllers\Admin\VehicleSecondaryImageController::class, 'destroy'])
+                ->name('vehicle-images.secondary.destroy');
+            Route::put('secondary/reorder', [App\Http\Controllers\Admin\VehicleSecondaryImageController::class, 'reorder'])
+                ->name('vehicle-images.secondary.reorder');
+            Route::post('secondary/{image}/promote', [App\Http\Controllers\Admin\VehicleSecondaryImageController::class, 'promote'])
+                ->name('vehicle-images.secondary.promote');
+            Route::put('secondary/{image}/alt', [App\Http\Controllers\Admin\VehicleSecondaryImageController::class, 'updateAlt'])
+                ->name('vehicle-images.secondary.updateAlt');
+        });
+
         Route::post('logout', [AdminAuthenticatedSessionController::class, 'destroy'])
             ->name('logout');
     });
