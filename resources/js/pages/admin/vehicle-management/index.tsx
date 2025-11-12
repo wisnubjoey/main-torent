@@ -44,6 +44,7 @@ import { useVehicleForm } from '@/hooks/vehicle-management-hooks/use-vehicle-for
 import { useBrandClassManagement } from '@/hooks/vehicle-management-hooks/use-brand-class-management';
 import { useVehicleImages } from '@/hooks/vehicle-management-hooks/use-vehicle-images';
 import React from 'react';
+import { usePagination } from '@/hooks/use-pagination';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -139,6 +140,42 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
         saveReorder,
     } = useVehicleImages();
 
+    // Pagination for Brands (5 items per page)
+    const {
+        items: paginatedBrands,
+        currentPage: brandsPage,
+        pageCount: brandsPageCount,
+        nextPage: nextBrandsPage,
+        prevPage: prevBrandsPage,
+        setPage: setBrandsPage,
+        canNextPage: canNextBrandsPage,
+        canPrevPage: canPrevBrandsPage,
+    } = usePagination(brands, 5);
+
+    // Pagination for Classes (5 items per page)
+    const {
+        items: paginatedClasses,
+        currentPage: classesPage,
+        pageCount: classesPageCount,
+        nextPage: nextClassesPage,
+        prevPage: prevClassesPage,
+        setPage: setClassesPage,
+        canNextPage: canNextClassesPage,
+        canPrevPage: canPrevClassesPage,
+    } = usePagination(classes, 5);
+
+    // Pagination for Vehicles (5 items per page)
+    const {
+        items: paginatedVehicles,
+        currentPage: vehiclesPage,
+        pageCount: vehiclesPageCount,
+        nextPage: nextVehiclesPage,
+        prevPage: prevVehiclesPage,
+        setPage: setVehiclesPage,
+        canNextPage: canNextVehiclesPage,
+        canPrevPage: canPrevVehiclesPage,
+    } = usePagination(vehicles, 5);
+
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
             <Head title="Vehicle Management" />
@@ -160,58 +197,100 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
 
                 {/* Brands and Classes lists */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="bg-background rounded-lg shadow border p-4">
+                    <div className="flex flex-col gap-2">
+                        <div className="bg-background rounded-lg shadow border p-4">
                         <div className="flex justify-between items-center mb-2">
                             <h2 className="text-lg font-semibold">Brands</h2>
                         </div>
-                        {brands.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No brands found</p>
-                        ) : (
-                            <ul className="divide-y">
-                                {brands.map((b) => (
-                                    <li key={b.id} className="flex items-center justify-between py-2">
-                                        <span>{b.name}</span>
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => openEditBrand(b)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => deleteBrand(b)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <ul className="divide-y">
+                            {paginatedBrands.map((b) => (
+                                <li key={b.id} className="flex items-center justify-between h-10">
+                                    <span>{b.name}</span>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => openEditBrand(b)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={() => deleteBrand(b)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </li>
+                            ))}
+                            {Array.from({ length: Math.max(0, 5 - paginatedBrands.length) }).map((_, idx) => (
+                                <li key={`empty-${idx}`} className="h-10" aria-hidden="true" role="presentation" />
+                            ))}
+                        </ul>
+                        </div>
+                        {/* Pagination controls for Brands (outside the card/list, always shown) */}
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                            <Button variant="outline" size="sm" onClick={prevBrandsPage} disabled={!canPrevBrandsPage}>
+                                Prev
+                            </Button>
+                            {Array.from({ length: Math.max(1, brandsPageCount) }, (_, i) => i + 1).map((pageNum) => (
+                                <Button
+                                    key={pageNum}
+                                    variant={pageNum === brandsPage ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setBrandsPage(pageNum)}
+                                    disabled={brandsPageCount === 0 || pageNum > brandsPageCount}
+                                >
+                                    {pageNum}
+                                </Button>
+                            ))}
+                            <Button variant="outline" size="sm" onClick={nextBrandsPage} disabled={!canNextBrandsPage}>
+                                Next
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="bg-background rounded-lg shadow border p-4">
+                    <div className="flex flex-col gap-2">
+                        <div className="bg-background rounded-lg shadow border p-4">
                         <div className="flex justify-between items-center mb-2">
                             <h2 className="text-lg font-semibold">Vehicle Classes</h2>
                         </div>
-                        {classes.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No classes found</p>
-                        ) : (
-                            <ul className="divide-y">
-                                {classes.map((c) => (
-                                    <li key={c.id} className="flex items-center justify-between py-2">
-                                        <span>{c.name}</span>
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => openEditClass(c)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => deleteClass(c)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <ul className="divide-y">
+                            {paginatedClasses.map((c) => (
+                                <li key={c.id} className="flex items-center justify-between h-10">
+                                    <span>{c.name}</span>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => openEditClass(c)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={() => deleteClass(c)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </li>
+                            ))}
+                            {Array.from({ length: Math.max(0, 5 - paginatedClasses.length) }).map((_, idx) => (
+                                <li key={`empty-class-${idx}`} className="h-10" aria-hidden="true" role="presentation" />
+                            ))}
+                        </ul>
+                        </div>
+                        {/* Pagination controls for Classes (outside card/list, always shown) */}
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                            <Button variant="outline" size="sm" onClick={prevClassesPage} disabled={!canPrevClassesPage}>
+                                Prev
+                            </Button>
+                            {Array.from({ length: Math.max(1, classesPageCount) }, (_, i) => i + 1).map((pageNum) => (
+                                <Button
+                                    key={pageNum}
+                                    variant={pageNum === classesPage ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setClassesPage(pageNum)}
+                                    disabled={classesPageCount === 0 || pageNum > classesPageCount}
+                                >
+                                    {pageNum}
+                                </Button>
+                            ))}
+                            <Button variant="outline" size="sm" onClick={nextClassesPage} disabled={!canNextClassesPage}>
+                                Next
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
-                
+                <h1 className="text-2xl font-bold mt-6 mb-2">Vehicle</h1>
                 {/* Vehicle Table */}
                 <div className="bg-background rounded-lg shadow overflow-hidden border">
                     <Table>
@@ -231,65 +310,84 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {vehicles.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={11} className="text-center py-4">
-                                        No vehicles found
+                            {paginatedVehicles.map((vehicle) => (
+                                <TableRow key={vehicle.id} className="h-12">
+                                    <TableCell>{vehicle.brand}</TableCell>
+                                    <TableCell>{vehicle.model}</TableCell>
+                                    <TableCell>{vehicle.production_year}</TableCell>
+                                    <TableCell>{vehicle.plate_no}</TableCell>
+                                    <TableCell>{vehicle.vehicle_type}</TableCell>
+                                    <TableCell>{vehicle.vehicle_class}</TableCell>
+                                    <TableCell>{vehicle.seat_count}</TableCell>
+                                    <TableCell>{vehicle.transmission}</TableCell>
+                                    <TableCell>{vehicle.engine_spec}</TableCell>
+                                    <TableCell>
+                                        <span className={`px-2 py-1 rounded-full text-xs ${
+                                            vehicle.status === 'active' 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : vehicle.status === 'maintenance'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-red-100 text-red-800'
+                                        }`}>
+                                            {vehicle.status}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex space-x-2">
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={() => handleEdit(vehicle)}
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={() => openImagesDialog(vehicle)}
+                                            >
+                                                <ImageIcon className="h-4 w-4" />
+                                            </Button>
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={() => handleDeleteConfirm(vehicle)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
-                            ) : (
-                                vehicles.map((vehicle) => (
-                                    <TableRow key={vehicle.id}>
-                                        <TableCell>{vehicle.brand}</TableCell>
-                                        <TableCell>{vehicle.model}</TableCell>
-                                        <TableCell>{vehicle.production_year}</TableCell>
-                                        <TableCell>{vehicle.plate_no}</TableCell>
-                                        <TableCell>{vehicle.vehicle_type}</TableCell>
-                                        <TableCell>{vehicle.vehicle_class}</TableCell>
-                                        <TableCell>{vehicle.seat_count}</TableCell>
-                                        <TableCell>{vehicle.transmission}</TableCell>
-                                        <TableCell>{vehicle.engine_spec}</TableCell>
-                                        <TableCell>
-                                            <span className={`px-2 py-1 rounded-full text-xs ${
-                                                vehicle.status === 'active' 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : vehicle.status === 'maintenance'
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {vehicle.status}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex space-x-2">
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm" 
-                                                    onClick={() => handleEdit(vehicle)}
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm" 
-                                                    onClick={() => openImagesDialog(vehicle)}
-                                                >
-                                                    <ImageIcon className="h-4 w-4" />
-                                                </Button>
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm" 
-                                                    onClick={() => handleDeleteConfirm(vehicle)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
+                            ))}
+                            {Array.from({ length: Math.max(0, 5 - paginatedVehicles.length) }).map((_, idx) => (
+                                <TableRow key={`vehicle-empty-${idx}`} className="h-12" aria-hidden="true" role="presentation">
+                                    {Array.from({ length: 11 }).map((__, cellIdx) => (
+                                        <TableCell key={cellIdx} />
+                                    ))}
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
+                </div>
+                {/* Pagination controls for Vehicles (outside the table container, always shown) */}
+                <div className="flex items-center justify-end gap-2 pt-2">
+                    <Button variant="outline" size="sm" onClick={prevVehiclesPage} disabled={!canPrevVehiclesPage}>
+                        Prev
+                    </Button>
+                    {Array.from({ length: Math.max(1, vehiclesPageCount) }, (_, i) => i + 1).map((pageNum) => (
+                        <Button
+                            key={pageNum}
+                            variant={pageNum === vehiclesPage ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setVehiclesPage(pageNum)}
+                            disabled={vehiclesPageCount === 0 || pageNum > vehiclesPageCount}
+                        >
+                            {pageNum}
+                        </Button>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={nextVehiclesPage} disabled={!canNextVehiclesPage}>
+                        Next
+                    </Button>
                 </div>
                 
                 {/* Create/Edit Dialog */}
