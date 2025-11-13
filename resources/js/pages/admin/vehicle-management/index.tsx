@@ -37,13 +37,14 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { PlusCircle, Pencil, Trash2, Image as ImageIcon, DollarSign } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { useVehicleManagement } from '@/hooks/vehicle-management-hooks/use-vehicle-management';
 import { useVehicleForm } from '@/hooks/vehicle-management-hooks/use-vehicle-form';
 import { useBrandClassManagement } from '@/hooks/vehicle-management-hooks/use-brand-class-management';
 import { useVehicleImages } from '@/hooks/vehicle-management-hooks/use-vehicle-images';
 import React from 'react';
+import { createHandlePriceInputChange, getPriceData, getPriceErrors } from '@/hooks/vehicle-management-hooks/use-price-inputs';
 import { usePagination } from '@/hooks/use-pagination';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -84,6 +85,7 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
         data,
         errors,
         processing,
+        setData,
         handleChange,
         handleSelectChange,
         handleSubmit,
@@ -175,6 +177,17 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
         canNextPage: canNextVehiclesPage,
         canPrevPage: canPrevVehiclesPage,
     } = usePagination(vehicles, 5);
+
+    // Price dialog state
+    const [isPriceDialogOpen, setIsPriceDialogOpen] = React.useState(false);
+    const [priceVehicle, setPriceVehicle] = React.useState<Vehicle | null>(null);
+
+    // Price handlers and typed views (from hook)
+    const handlePriceInputChange = createHandlePriceInputChange(
+        setData as unknown as (key: string, value: unknown) => void
+    );
+    const dataWithPrices = getPriceData(data);
+    const errorsWithPrices = getPriceErrors(errors);
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
@@ -347,6 +360,15 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                                 onClick={() => openImagesDialog(vehicle)}
                                             >
                                                 <ImageIcon className="h-4 w-4" />
+                                            </Button>
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                type="button"
+                                                title="Prices"
+                                                onClick={() => { setPriceVehicle(vehicle); setIsPriceDialogOpen(true); }}
+                                            >
+                                                <DollarSign className="h-4 w-4" />
                                             </Button>
                                             <Button 
                                                 variant="outline" 
@@ -576,6 +598,52 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                     )}
                                 </div>
                             </div>
+
+                            {/* Prices (IDR) - simple inputs */}
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="price_daily_idr">Daily Price (IDR)</Label>
+                                    <Input
+                                        id="price_daily_idr"
+                                        name="price_daily_idr"
+                                        type="number"
+                                        min={0}
+                                        value={dataWithPrices.price_daily_idr ?? ''}
+                                        onChange={(e) => handlePriceInputChange('price_daily_idr', e.target.value)}
+                                    />
+                                    {errorsWithPrices.price_daily_idr && (
+                                        <p className="text-red-500 text-sm">{errorsWithPrices.price_daily_idr}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="price_weekly_idr">Weekly Price (IDR)</Label>
+                                    <Input
+                                        id="price_weekly_idr"
+                                        name="price_weekly_idr"
+                                        type="number"
+                                        min={0}
+                                        value={dataWithPrices.price_weekly_idr ?? ''}
+                                        onChange={(e) => handlePriceInputChange('price_weekly_idr', e.target.value)}
+                                    />
+                                    {errorsWithPrices.price_weekly_idr && (
+                                        <p className="text-red-500 text-sm">{errorsWithPrices.price_weekly_idr}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="price_monthly_idr">Monthly Price (IDR)</Label>
+                                    <Input
+                                        id="price_monthly_idr"
+                                        name="price_monthly_idr"
+                                        type="number"
+                                        min={0}
+                                        value={dataWithPrices.price_monthly_idr ?? ''}
+                                        onChange={(e) => handlePriceInputChange('price_monthly_idr', e.target.value)}
+                                    />
+                                    {errorsWithPrices.price_monthly_idr && (
+                                        <p className="text-red-500 text-sm">{errorsWithPrices.price_monthly_idr}</p>
+                                    )}
+                                </div>
+                            </div>
                             
                             <DialogFooter>
                                 <Button 
@@ -590,6 +658,41 @@ export default function VehicleManagement({ vehicles: initialVehicles, brands, c
                                 </Button>
                             </DialogFooter>
                         </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Price Dialog */}
+                <Dialog open={isPriceDialogOpen} onOpenChange={setIsPriceDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>
+                                {priceVehicle ? `${priceVehicle.brand} ${priceVehicle.model} Prices` : 'Vehicle Prices'}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-2">
+                                <Label>Daily Price (IDR)</Label>
+                                <Input value={priceVehicle?.price_daily_idr ?? ''} disabled />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Weekly Price (IDR)</Label>
+                                <Input value={priceVehicle?.price_weekly_idr ?? ''} disabled />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Monthly Price (IDR)</Label>
+                                <Input value={priceVehicle?.price_monthly_idr ?? ''} disabled />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" type="button" onClick={() => setIsPriceDialogOpen(false)}>
+                                Close
+                            </Button>
+                            {priceVehicle && (
+                                <Button type="button" onClick={() => { setIsPriceDialogOpen(false); handleEdit(priceVehicle); }}>
+                                    Edit
+                                </Button>
+                            )}
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
                 

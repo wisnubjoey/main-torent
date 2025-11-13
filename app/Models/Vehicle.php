@@ -14,7 +14,15 @@ class Vehicle extends Model {
     protected $fillable = [
         'vehicle_type','vehicle_class','brand','brand_id','vehicle_class_id','model','production_year','plate_no',
         'seat_count','transmission','engine_spec','status',
+        // Pricing fields in IDR
+        'price_daily_idr','price_weekly_idr','price_monthly_idr',
         'primary_image_path','primary_image_alt'
+    ];
+
+    protected $casts = [
+        'price_daily_idr' => 'integer',
+        'price_weekly_idr' => 'integer',
+        'price_monthly_idr' => 'integer',
     ];
 
     // Relations

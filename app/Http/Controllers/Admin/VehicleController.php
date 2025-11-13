@@ -42,6 +42,10 @@ class VehicleController extends Controller
                     'seat_count' => $v->seat_count,
                     'transmission' => $v->transmission,
                     'engine_spec' => $v->engine_spec,
+                    // Pricing fields in IDR
+                    'price_daily_idr' => $v->price_daily_idr,
+                    'price_weekly_idr' => $v->price_weekly_idr,
+                    'price_monthly_idr' => $v->price_monthly_idr,
                     'status' => $v->status,
                     'created_at' => optional($v->created_at)?->toISOString(),
                 ];

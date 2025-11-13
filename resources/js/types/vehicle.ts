@@ -17,6 +17,10 @@ export interface Vehicle {
     engine_spec?: string;
     status: ActiveStatus;
     created_at?: string;
+    // Price fields (IDR)
+    price_daily_idr?: number | null;
+    price_weekly_idr?: number | null;
+    price_monthly_idr?: number | null;
 }
 
 export interface VehicleFormData {
