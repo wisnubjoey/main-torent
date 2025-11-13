@@ -14,8 +14,14 @@ return new class extends Migration {
         });
 
         // 2) Backfill IDs from existing text columns, using case-insensitive matching
-        DB::statement("UPDATE vehicles v SET brand_id = b.id FROM brands b WHERE lower(b.name) = lower(v.brand)");
-        DB::statement("UPDATE vehicles v SET vehicle_class_id = vc.id FROM vehicle_classes vc WHERE lower(vc.name) = lower(v.vehicle_class)");
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("UPDATE vehicles v SET brand_id = b.id FROM brands b WHERE lower(b.name) = lower(v.brand)");
+            DB::statement("UPDATE vehicles v SET vehicle_class_id = vc.id FROM vehicle_classes vc WHERE lower(vc.name) = lower(v.vehicle_class)");
+        } else {
+            // SQLite-compatible correlated subquery updates
+            DB::statement("UPDATE vehicles SET brand_id = (SELECT id FROM brands WHERE lower(name) = lower(vehicles.brand))");
+            DB::statement("UPDATE vehicles SET vehicle_class_id = (SELECT id FROM vehicle_classes WHERE lower(name) = lower(vehicles.vehicle_class))");
+        }
 
         // 3) Add helpful indexes
         Schema::table('vehicles', function (Blueprint $table) {
@@ -23,18 +29,21 @@ return new class extends Migration {
             $table->index(['vehicle_class_id', 'status'], 'idx_vehicles_vclass_id_status');
         });
 
-        // 4) Add foreign keys as NOT VALID, then validate after backfill
-        DB::statement("ALTER TABLE vehicles ADD CONSTRAINT fk_vehicles_brand_id FOREIGN KEY (brand_id) REFERENCES brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID");
-        DB::statement("ALTER TABLE vehicles ADD CONSTRAINT fk_vehicles_vehicle_class_id FOREIGN KEY (vehicle_class_id) REFERENCES vehicle_classes(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID");
-
-        DB::statement("ALTER TABLE vehicles VALIDATE CONSTRAINT fk_vehicles_brand_id");
-        DB::statement("ALTER TABLE vehicles VALIDATE CONSTRAINT fk_vehicles_vehicle_class_id");
+        // 4) Add foreign keys (PG-only path) and validate after backfill
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE vehicles ADD CONSTRAINT fk_vehicles_brand_id FOREIGN KEY (brand_id) REFERENCES brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID");
+            DB::statement("ALTER TABLE vehicles ADD CONSTRAINT fk_vehicles_vehicle_class_id FOREIGN KEY (vehicle_class_id) REFERENCES vehicle_classes(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID");
+            DB::statement("ALTER TABLE vehicles VALIDATE CONSTRAINT fk_vehicles_brand_id");
+            DB::statement("ALTER TABLE vehicles VALIDATE CONSTRAINT fk_vehicles_vehicle_class_id");
+        }
     }
 
     public function down(): void {
-        // Drop FKs
-        DB::statement("ALTER TABLE vehicles DROP CONSTRAINT IF EXISTS fk_vehicles_brand_id");
-        DB::statement("ALTER TABLE vehicles DROP CONSTRAINT IF EXISTS fk_vehicles_vehicle_class_id");
+        // Drop FKs (PG-only)
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE vehicles DROP CONSTRAINT IF EXISTS fk_vehicles_brand_id");
+            DB::statement("ALTER TABLE vehicles DROP CONSTRAINT IF EXISTS fk_vehicles_vehicle_class_id");
+        }
 
         // Drop indexes
         Schema::table('vehicles', function (Blueprint $table) {

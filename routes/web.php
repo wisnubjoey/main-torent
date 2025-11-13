@@ -13,10 +13,19 @@ Route::middleware('guest')->group(function () {
     Route::get('login', function () {
         return Inertia::render('user/auth/login');
     })->name('login');
+
+    // Alias Fortify's POST /login to the name expected by tests
+    Route::post('login', [\Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:login')
+        ->name('login.store');
     
     Route::get('register', function () {
         return Inertia::render('user/auth/register');
     })->name('register');
+
+    // Alias Fortify's POST /register to the name expected by tests
+    Route::post('register', [\Laravel\Fortify\Http\Controllers\RegisteredUserController::class, 'store'])
+        ->name('register.store');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

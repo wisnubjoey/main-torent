@@ -20,10 +20,20 @@ return new class extends Migration {
             $table->timestampTz('updated_at')->useCurrentOnUpdate();
         });
 
-        // Use PostgreSQL ENUM types created in 2025_10_28_020929_create_pg_enums.php
-        DB::statement("ALTER TABLE vehicles ADD COLUMN vehicle_type vehicle_type NOT NULL");
-        DB::statement("ALTER TABLE vehicles ADD COLUMN transmission transmission NULL");
-        DB::statement("ALTER TABLE vehicles ADD COLUMN status active_status NOT NULL DEFAULT 'active'");
+        // Add type-specific columns depending on the DB driver
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            // Use PostgreSQL ENUM types created in 2025_10_28_020929_create_pg_enums.php
+            DB::statement("ALTER TABLE vehicles ADD COLUMN vehicle_type vehicle_type NOT NULL");
+            DB::statement("ALTER TABLE vehicles ADD COLUMN transmission transmission NULL");
+            DB::statement("ALTER TABLE vehicles ADD COLUMN status active_status NOT NULL DEFAULT 'active'");
+        } else {
+            // SQLite: use simple string columns to simulate enums
+            Schema::table('vehicles', function (Blueprint $table) {
+                $table->string('vehicle_type');
+                $table->string('transmission')->nullable();
+                $table->string('status')->default('active');
+            });
+        }
 
         Schema::table('vehicles', function (Blueprint $table) {
             $table->index(['vehicle_class','status'], 'idx_vehicles_class_status');
