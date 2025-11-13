@@ -37,7 +37,10 @@ class VehicleRequest extends FormRequest
                 'max:20',
                 Rule::unique('vehicles', 'plate_no'),
             ],
-            // Pricing removed for simplification; no base_daily_rate validation
+            // Pricing (IDR): optional, non-negative integers
+            'price_daily_idr' => ['nullable', 'integer', 'min:0'],
+            'price_weekly_idr' => ['nullable', 'integer', 'min:0'],
+            'price_monthly_idr' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'string', 'in:active,maintenance,retired'],
 
             // Newly added fields in the form
@@ -83,6 +86,14 @@ class VehicleRequest extends FormRequest
             'transmission.in' => 'Transmission must be manual, automatic, or semi-automatic.',
             'engine_spec.max' => 'Engine spec may not be greater than 1000 characters.',
             'vehicle_type.in' => 'Vehicle type must be car or motorcycle.',
+
+            // Price messages
+            'price_daily_idr.integer' => 'Daily price must be an integer.',
+            'price_daily_idr.min' => 'Daily price must be zero or greater.',
+            'price_weekly_idr.integer' => 'Weekly price must be an integer.',
+            'price_weekly_idr.min' => 'Weekly price must be zero or greater.',
+            'price_monthly_idr.integer' => 'Monthly price must be an integer.',
+            'price_monthly_idr.min' => 'Monthly price must be zero or greater.',
         ];
     }
 }
