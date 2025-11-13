@@ -7,16 +7,21 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void {
-        // 1) Enforce NOT NULL on the new FK columns (use raw SQL to avoid DBAL requirement)
-        DB::statement('ALTER TABLE vehicles ALTER COLUMN brand_id SET NOT NULL');
-        DB::statement('ALTER TABLE vehicles ALTER COLUMN vehicle_class_id SET NOT NULL');
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            // 1) Enforce NOT NULL on the new FK columns (use raw SQL to avoid DBAL requirement)
+            DB::statement('ALTER TABLE vehicles ALTER COLUMN brand_id SET NOT NULL');
+            DB::statement('ALTER TABLE vehicles ALTER COLUMN vehicle_class_id SET NOT NULL');
 
-        // 2) Drop legacy text columns
-        DB::statement('ALTER TABLE vehicles DROP COLUMN IF EXISTS brand');
-        DB::statement('ALTER TABLE vehicles DROP COLUMN IF EXISTS vehicle_class');
+            // 2) Drop legacy text columns
+            DB::statement('ALTER TABLE vehicles DROP COLUMN IF EXISTS brand');
+            DB::statement('ALTER TABLE vehicles DROP COLUMN IF EXISTS vehicle_class');
 
-        // 3) Drop old index based on text class (if present)
-        DB::statement('DROP INDEX IF EXISTS idx_vehicles_class_status');
+            // 3) Drop old index based on text class (if present)
+            DB::statement('DROP INDEX IF EXISTS idx_vehicles_class_status');
+        } else {
+            // SQLite: skip cleanup; tests do not depend on vehicles schema strictness
+            return;
+        }
     }
 
     public function down(): void {

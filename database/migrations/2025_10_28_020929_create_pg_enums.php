@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void {
+        // Only create enum types on PostgreSQL; SQLite tests should skip
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
         DB::statement("CREATE TYPE vehicle_type     AS ENUM ('car','motorcycle')");
         DB::statement("CREATE TYPE transmission     AS ENUM ('manual','automatic','semi-automatic')");
         DB::statement("CREATE TYPE rental_status    AS ENUM ('draft','reserved','ongoing','returned','cancelled','closed')");
@@ -14,6 +18,9 @@ return new class extends Migration {
     }
 
     public function down(): void {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
         DB::statement("DROP TYPE IF EXISTS active_status");
         DB::statement("DROP TYPE IF EXISTS rental_status");
         DB::statement("DROP TYPE IF EXISTS transmission");
