@@ -8,6 +8,10 @@ Route::get('/', function () {
     return Inertia::render('landing');
 })->name('home');
 
+Route::get('vehicles', function () {
+    return Inertia::render('public/vehicles/index');
+})->name('vehicles');
+
 // Guest routes for authentication
 Route::middleware('guest')->group(function () {
     Route::get('login', function () {
