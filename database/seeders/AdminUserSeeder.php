@@ -13,7 +13,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::firstOrCreate(
-            ['phone' => '5550000001'],
+            ['phone' => '5550000000'],
             [
                 'name' => 'Admin User',
                 'password' => 'password',
