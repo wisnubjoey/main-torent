@@ -1,9 +1,9 @@
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion, Variants } from "framer-motion"
 import { Check, Users, UserCheck } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 
-interface ProfileCardProps {
+interface VehicleCardProps {
   name?: string
   description?: string
   image?: string
@@ -16,7 +16,7 @@ interface ProfileCardProps {
   isFollowing?: boolean
 }
 
-export function ProfileCard({
+export function VehicleCard({
   name = "Sophie Bennett",
   description = "Product Designer who focuses on simplicity & usability.",
   image = "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=800&h=800&fit=crop&auto=format&q=80",
@@ -27,36 +27,38 @@ export function ProfileCard({
   className,
   onFollow = () => {},
   isFollowing = false,
-}: ProfileHoverCardProps) {
+}: VehicleCardProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hovered, setHovered] = useState(false)
   const shouldReduceMotion = useReducedMotion()
   const shouldAnimate = enableAnimations && !shouldReduceMotion
 
-  const containerVariants = {
-    rest: { 
-      scale: 1,
-      y: 0,
-      filter: "blur(0px)",
-    },
-    hover: shouldAnimate ? { 
-      scale: 1.02, 
-      y: -4,
-      filter: "blur(0px)",
-      transition: { 
-        type: "spring", 
-        stiffness: 400, 
-        damping: 28,
-        mass: 0.6,
-      }
-    } : {},
+  const containerVariants: Variants = {
+  rest: { 
+    scale: 1,
+    y: 0,
+    filter: "blur(0px)",
+  },
+  hover: shouldAnimate ? { 
+    scale: 1.02, 
+    y: -4,
+    filter: "blur(0px)",
+    transition: { 
+      type: "spring", 
+      stiffness: 400, 
+      damping: 28,
+      mass: 0.6,
+    }
+  } : {},
   }
 
-  const imageVariants = {
+
+  const imageVariants: Variants = {
     rest: { scale: 1 },
     hover: { scale: 1.05 },
   }
 
-  const contentVariants = {
+  const contentVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 20,
@@ -77,7 +79,7 @@ export function ProfileCard({
     },
   }
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 15,
@@ -98,7 +100,7 @@ export function ProfileCard({
     },
   }
 
-  const letterVariants = {
+  const letterVariants: Variants = {
     hidden: { 
       opacity: 0, 
       scale: 0.8,
@@ -117,12 +119,12 @@ export function ProfileCard({
 
   return (
     <motion.div
-      data-slot="profile-hover-card"
+      data-slot="vehicle-card"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       initial="rest"
       whileHover="hover"
-      variants={containerVariants}
+      variants={containerVariants as never}
       className={cn(
         "relative w-80 h-96 rounded-3xl border border-border/20 text-card-foreground overflow-hidden shadow-xl shadow-black/5 cursor-pointer group backdrop-blur-sm",
         "dark:shadow-black/20",

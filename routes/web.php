@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminAuthenticatedSessionController;
+use App\Models\Vehicle;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -9,7 +10,26 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('vehicles', function () {
-    return Inertia::render('public/vehicles/index');
+    $vehicles = Vehicle::with(['brand:id,name', 'vehicleClass:id,name'])
+        ->get()
+        ->map(function ($v) {
+            return [
+                'id' => $v->id,
+                'vehicle_type' => $v->vehicle_type,
+                'vehicle_class' => optional($v->vehicleClass)->name ?? '',
+                'brand' => optional($v->brand)->name ?? '',
+                'model' => $v->model,
+                'production_year' => $v->production_year,
+                'seat_count' => $v->seat_count,
+                'transmission' => $v->transmission,
+                'image_url' => $v->image_url,
+                'primary_image_alt' => $v->primary_image_alt,
+            ];
+        });
+
+    return Inertia::render('public/vehicles/index', [
+        'vehicles' => $vehicles,
+    ]);
 })->name('vehicles');
 
 // Guest routes for authentication
