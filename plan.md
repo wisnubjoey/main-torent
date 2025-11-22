@@ -1,124 +1,342 @@
-# Torent Image Module – Minimal Plan (Deadline-Friendly)
+Product Requirements Document (PRD)
+Vehicle Rental Order Module
+1. Purpose
 
-## Goals
-- Add primary image (nullable) to `vehicles`.
-- Add secondary images (nullable, max 10) per vehicle.
-- Use Laravel public storage with simple paths.
-- Keep files original (no optimization, no orientation fixes).
-- Simple admin UX: upload/replace/delete primary; upload/delete/reorder secondary; set secondary as primary.
-- Optional alt text per image.
+This document defines the functional and business requirements for the vehicle rental order module. The system supports simple booking flows without online payments. Verification is handled through WhatsApp after an order is created.
 
-## Decisions (Confirmed)
-- Storage: `public` disk; URLs via `/storage/...` (requires `php artisan storage:link`).
-- File types: `jpeg`, `png`, `webp`.
-- Max size: 50 MB per image.
-- Primary/secondary can be null; fallback static image shown if primary missing.
-- No CDN, caching, responsive variants, or security extras for now.
+Primary flow:
 
-## Storage Layout
-- Primary: `vehicles/{vehicle_id}/primary/{hashed}.{ext}`
-- Secondary: `vehicles/{vehicle_id}/secondary/{uuid}.{ext}`
-- Store only the path in DB. Generate URL with `Storage::disk('public')->url($path)`.
+User selects a vehicle from dashboard → chooses vehicles that is available for the selected date range → submits order (status = draft) → receives WhatsApp verification CTA → admin verifies and progresses the order status until completion.
 
-## Database Changes
-- Vehicles table:
-  - Add `primary_image_path` (string, nullable).
-  - Add `primary_image_alt` (string, nullable) — optional but ready if needed.
-  - Note: If DB is already migrated and not resetting, create a new migration to add these columns.
+The PRD focuses exclusively on:
 
-- New table: `vehicle_images` (secondary images):
-  - `id` (PK), `vehicle_id` (FK → `vehicles.id`, cascade on delete).
-  - `path` (string, not null).
-  - `position` (unsigned tiny int 0–9).
-  - `alt_text` (string, nullable).
-  - `created_at`, `updated_at`.
-  - Unique index: (`vehicle_id`, `position`) to keep order consistent.
+Creating rental orders
 
-## Models
-- `Vehicle`:
-  - Relationship: `hasMany(VehicleImage::class)` for secondaries.
-  - Accessor: `image_url` returns public URL from `primary_image_path` or null.
-  - Helper: `secondaryImagesOrdered()` returns secondaries ordered by `position`.
+Order status lifecycle
 
-- `VehicleImage`:
-  - `belongsTo(Vehicle::class)`.
+Availability checking
 
-## Validation
-- Primary upload: `required|image|mimes:jpeg,png,webp|max:51200`.
-- Secondary upload: `required|image|mimes:jpeg,png,webp|max:51200`.
-- Reorder: `position` must be 0–9; enforce unique per vehicle.
+WhatsApp verification (not important)
 
-## Controllers & Endpoints (Admin)
-- Primary image:
-  - Upload/replace: store to `public`, set `primary_image_path`, optional `primary_image_alt`.
-  - Delete: remove file; set `primary_image_path` null (fallback static image in UI).
+Rental workflows for admin and user
 
-- Secondary images:
-  - Upload (single or multiple): store to `public`; auto-assign next available `position` (0–9).
-  - Delete: remove file; free the `position`.
-  - Reorder: update `position` values (ensure uniqueness).
-  - Set as Primary: copy selected secondary’s path into `primary_image_path`, then
-    - Option B (chosen): remove the secondary record to avoid duplicates.
+2. Scope
 
-- Routes (example structure):
-  - `POST /admin/vehicles/{vehicle}/primary` (upload/replace)
-  - `DELETE /admin/vehicles/{vehicle}/primary` (delete)
-  - `POST /admin/vehicles/{vehicle}/secondary` (upload)
-  - `DELETE /admin/vehicles/{vehicle}/secondary/{image}` (delete)
-  - `PUT /admin/vehicles/{vehicle}/secondary/reorder` (bulk reorder)
-  - `POST /admin/vehicles/{vehicle}/secondary/{image}/promote` (set as primary)
-  - `PUT /admin/vehicles/{vehicle}/secondary/{image}/alt` (update alt text)
+The scope of this module includes:
 
-## Admin UI (Simple First)
-- Primary:
-  - Show current primary or fallback static image.
-  - File input + upload button.
-  - Delete button.
+User capabilities
 
-- Secondary:
-  - Multi-file upload (prevent >10).
-  - List/grid:
-    - Thumbnail, optional alt text field.
-    - Buttons: Delete, Set as Primary.
-    - Position field (0–9) with save; drag-drop can be added later.
+Browse available vehicles.
 
-- Counter: Display “x/10 images used”.
+Search for vehicles based on availability (date range).
 
-## Business Rules
-- Primary deletion: UI shows static fallback.
-- Secondary cap: reject the 11th image with a friendly message.
-- Positions: integers 0–9, unique per vehicle.
-- Replace primary: delete old primary file.
-- Promote secondary→primary: set primary path, delete secondary record.
+Select rental duration: daily, weekly, or monthly.
 
-## Cleanup
-- On vehicle delete: delete `vehicles/{vehicle_id}` directory (primary + all secondaries).
-- On primary replace and secondary delete: delete corresponding files.
+Create an order with basic personal info.
 
-## Setup Steps
-1. Run: `php artisan storage:link` (exposes `/storage` URLs).
-2. Run migrations to add primary cols and create `vehicle_images`.
-3. Verify `config/filesystems.php` has `public` disk configured (default Laravel settings).
-4. Add static fallback image in your frontend assets and reference it when `image_url` is null.
+Receive a WhatsApp CTA for manual verification (redirect to whatsapp).
 
-## Testing (Minimal)
-- Upload primary: path saved, file exists in `storage/app/public`, URL loads via `/storage/...`.
-- Delete primary: path null, fallback visible.
-- Upload up to 10 secondaries; 11th is blocked.
-- Reorder positions and verify order is reflected.
-- Promote secondary to primary and confirm secondary record removed.
-- Vehicle delete removes directory.
+Admin capabilities
 
-## Timeline (Fast Path)
-- Migrations + models: 1–2 hours.
-- Controllers + routes: 1–2 hours.
-- Simple admin views: 2–3 hours.
-- Manual test pass: 1 hour.
-- Buffer: 1 hour.
+View all orders by status.
 
-## Future Enhancements (Post-Deadline)
-- Image optimization and WebP generation.
-- Drag-drop reorder UX.
-- Responsive delivery (`srcset`) and caching headers.
-- Security: strict validation, rate limiting, signed URLs for private content if needed.
-- Observability: upload metrics and error tracking.
+Verify orders manually and update statuses.
+
+Mark rental start and end.
+
+Close or cancel orders.
+
+Not included:
+
+Online payments
+
+Promo codes
+
+Dynamic pricing (later)
+
+Return inspections
+
+Full CRM/customer identity workflows
+
+3. Terminology & Status Models
+3.1 Vehicle Status (vehicles.status)
+
+active
+Vehicle can be rented.
+
+maintenance
+Vehicle unavailable for scheduling.
+
+retired
+Vehicle permanently removed from active rental inventory.
+
+3.2 Rental Order Status (rentals.status)
+
+draft
+User created the order; awaiting admin verification.
+
+reserved
+Admin has verified and locked the dates.
+
+ongoing
+Vehicle is handed over to customer; rental period running.
+
+returned
+Customer has returned the vehicle; admin review pending.
+
+cancelled
+Order voided; no rental occurred.
+
+closed
+Order fully completed after return and admin checks.
+
+cancelled and closed are terminal states.
+
+4. Actors
+Customer (User)
+
+Selects available vehicle and date range.
+
+Creates a rental order.
+
+Contacts admin via WhatsApp for verification.
+
+Administrator
+
+Reviews and verifies orders (via WhatsApp communication outside system).
+
+Manages order lifecycle.
+
+Ensures vehicle availability.
+
+Marks rental start and finish.
+
+5. Core Flows (Happy Path)
+5.1 Order Creation Flow (User)
+
+User selects a vehicle.
+
+User chooses:
+
+Start date
+
+Rental type: daily, weekly, or monthly
+
+Duration (example: 3 days, 2 weeks, 1 month)
+
+System computes:
+
+end_date = start_date + duration
+
+System validates availability:
+
+Vehicle must be active.
+
+No overlapping rentals for the same vehicle with statuses:
+reserved, ongoing, or returned.
+
+Explanation of overlapping:
+Two date ranges overlap if they share at least one day.
+
+If available:
+
+System displays rental summary and total price.
+
+User submits the order.
+
+System creates order with:
+
+Status = draft
+
+Pricing snapshot (copied from vehicle)
+
+Saved rental details (start_date, end_date, rental type)
+
+Customer info (name, phone, notes)
+
+System displays:
+
+Success message
+
+Order code
+
+WhatsApp CTA button
+
+5.2 WhatsApp Verification Flow
+
+After order creation:
+
+User clicks "Verify on WhatsApp".
+
+System opens:
+
+wa.me/<admin_number>?text=<pre-filled verification message>
+
+
+User and admin communicate externally (via WhatsApp) for:
+
+Identity verification
+
+Rental confirmation
+
+Additional instructions
+
+No automated payment or approval inside the system.
+
+5.3 Admin Verification Flow (Draft → Reserved)
+
+Admin opens order list (status = draft).
+
+Admin manually verifies user via WhatsApp.
+
+Admin checks availability again (system assistance recommended).
+
+Admin sets status:
+
+draft → reserved
+
+Once reserved:
+
+Vehicle is locked for the selected date range.
+
+No other orders may reserve the same dates for that vehicle.
+
+5.4 Rental Start (Reserved → Ongoing)
+
+On the actual handover day, admin updates:
+
+reserved → ongoing
+
+System records:
+
+actual_start_datetime (optional)
+
+During ongoing, the vehicle remains unavailable.
+
+5.5 Rental End & Completion (Ongoing → Returned → Closed)
+
+Upon vehicle return:
+
+Admin updates ongoing → returned
+
+After checks & admin processing:
+
+Admin updates returned → closed
+
+6. Alternative Flows (Cancellation)
+Draft State Cancellation
+
+Admin may cancel:
+draft → cancelled
+(e.g., user unresponsive)
+
+Reserved State Cancellation
+
+Admin may cancel:
+reserved → cancelled
+(e.g., user backs out before pickup)
+
+Orders in ongoing cannot be cancelled. They must follow:
+
+ongoing → returned → closed
+
+7. Business Rules
+
+Vehicle availability is determined by:
+
+vehicles.status = active
+
+No date overlaps with existing rental orders in status:
+reserved, ongoing, returned
+
+Total rental price uses vehicle’s pricing fields:
+
+price_daily_idr
+
+price_weekly_idr
+
+price_monthly_idr
+
+When the order is created:
+
+Prices are copied into the rental order (pricing snapshot).
+
+This preserves historical records even if vehicle pricing changes later.
+
+WhatsApp contact number must be configurable.
+
+No payment logic is included in this phase.
+
+8. Data Specification (Order Entity)
+
+Minimum fields required:
+
+id
+
+order_code
+
+user_id (or simple customer contact fields)
+
+vehicle_id
+
+status
+
+start_date
+
+end_date
+
+rental_unit (daily, weekly, monthly)
+
+rental_quantity (number of days/weeks/months)
+
+price_daily_snapshot
+
+price_weekly_snapshot
+
+price_monthly_snapshot
+
+total_price
+
+customer_name
+
+customer_phone
+
+customer_notes
+
+actual_start_datetime (optional)
+
+actual_end_datetime (optional)
+
+created_at
+
+updated_at
+
+9. Future Extensions (Not Required Now) NOT IMPORTANT FOR NOW!
+
+This PRD anticipates but does not require:
+
+Dynamic pricing
+
+Coupon/discount system
+
+Auto-reminders (email/WhatsApp)
+
+Order aging & auto-cancel (e.g., draft expires after X hours)
+
+Payment module
+
+Cross-branch vehicle management
+
+Mobile app API
+
+Feature that already implemented :
+- User dashboard reorganization with structured page hierarchy (dashboard/index and dashboard/vehicles)
+- Navigation system with sidebar menu including Dashboard and Vehicles links
+- Vehicle management system for admin (brand, vehicle class, and vehicle management)
+- Public vehicles page with vehicle listing
+- User authentication system (login, register)
+- Admin authentication system with separate login
+- Vehicle image management (primary and secondary images)
+- Basic UI components and layouts for both user and admin interfaces
+- Route management with Laravel Inertia.js integration
+- Responsive design with Tailwind CSS and shadcn/ui components
