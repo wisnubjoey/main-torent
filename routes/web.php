@@ -54,8 +54,16 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('user/dashboard');
+        return Inertia::render('user/dashboard/index');
     })->name('dashboard');
+    
+    Route::get('dashboard/vehicles', function () {
+        return Inertia::render('user/dashboard/vehicles/index');
+    })->name('dashboard.vehicles');
+    
+    Route::get('vehicle', function () {
+        return Inertia::render('user/vehicle');
+    })->name('vehicle');
     
     Route::get('confirm-password', function () {
         return Inertia::render('user/auth/confirm-password');
