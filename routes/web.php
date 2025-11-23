@@ -58,7 +58,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
     
     Route::get('dashboard/vehicles', function () {
-        return Inertia::render('user/dashboard/vehicles/index');
+        $vehicles = Vehicle::with(['brand:id,name', 'vehicleClass:id,name'])
+            ->get()
+            ->map(function ($v) {
+                return [
+                    'id' => $v->id,
+                    'vehicle_type' => $v->vehicle_type,
+                    'vehicle_class' => optional($v->vehicleClass)->name ?? '',
+                    'brand' => optional($v->brand)->name ?? '',
+                    'model' => $v->model,
+                    'production_year' => $v->production_year,
+                    'seat_count' => $v->seat_count,
+                    'transmission' => $v->transmission,
+                    'image_url' => $v->image_url,
+                    'primary_image_alt' => $v->primary_image_alt,
+                ];
+            });
+
+        return Inertia::render('user/vehicles/index', [
+            'vehicles' => $vehicles,
+        ]);
     })->name('dashboard.vehicles');
     
     Route::get('vehicle', function () {
