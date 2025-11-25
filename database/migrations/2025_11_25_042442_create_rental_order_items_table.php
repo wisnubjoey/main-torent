@@ -30,14 +30,12 @@ return new class extends Migration
             $table->index(['rental_order_id', 'vehicle_id'], 'idx_order_vehicle');
         });
 
-        // Add CHECK constraint for mode field
-        DB::statement("ALTER TABLE rental_order_items ADD CONSTRAINT rental_order_items_mode_check CHECK (mode IN ('daily', 'weekly', 'monthly'))");
-        
-        // Add CHECK constraint to ensure end_at is after start_at
-        DB::statement("ALTER TABLE rental_order_items ADD CONSTRAINT rental_order_items_dates_check CHECK (end_at > start_at)");
-        
-        // Add CHECK constraint to ensure quantity is positive
-        DB::statement("ALTER TABLE rental_order_items ADD CONSTRAINT rental_order_items_quantity_check CHECK (quantity > 0)");
+        // Add CHECK constraints only on PostgreSQL
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE rental_order_items ADD CONSTRAINT rental_order_items_mode_check CHECK (mode IN ('daily', 'weekly', 'monthly'))");
+            DB::statement("ALTER TABLE rental_order_items ADD CONSTRAINT rental_order_items_dates_check CHECK (end_at > start_at)");
+            DB::statement("ALTER TABLE rental_order_items ADD CONSTRAINT rental_order_items_quantity_check CHECK (quantity > 0)");
+        }
     }
 
     /**
@@ -45,10 +43,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop CHECK constraints first
-        DB::statement("ALTER TABLE rental_order_items DROP CONSTRAINT IF EXISTS rental_order_items_mode_check");
-        DB::statement("ALTER TABLE rental_order_items DROP CONSTRAINT IF EXISTS rental_order_items_dates_check");
-        DB::statement("ALTER TABLE rental_order_items DROP CONSTRAINT IF EXISTS rental_order_items_quantity_check");
+        // Drop CHECK constraints first only on PostgreSQL
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE rental_order_items DROP CONSTRAINT IF EXISTS rental_order_items_mode_check");
+            DB::statement("ALTER TABLE rental_order_items DROP CONSTRAINT IF EXISTS rental_order_items_dates_check");
+            DB::statement("ALTER TABLE rental_order_items DROP CONSTRAINT IF EXISTS rental_order_items_quantity_check");
+        }
         
         Schema::dropIfExists('rental_order_items');
     }

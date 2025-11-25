@@ -22,8 +22,10 @@ return new class extends Migration
             $table->timestampTz('updated_at')->useCurrentOnUpdate();
         });
 
-        // Add CHECK constraint for status field
-        DB::statement("ALTER TABLE rental_orders ADD CONSTRAINT rental_orders_status_check CHECK (status IN ('draft', 'ongoing', 'completed', 'cancelled'))");
+        // Add CHECK constraint for status field only on PostgreSQL
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE rental_orders ADD CONSTRAINT rental_orders_status_check CHECK (status IN ('draft', 'ongoing', 'completed', 'cancelled'))");
+        }
     }
 
     /**
@@ -31,8 +33,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop CHECK constraint first
-        DB::statement("ALTER TABLE rental_orders DROP CONSTRAINT IF EXISTS rental_orders_status_check");
+        // Drop CHECK constraint first only on PostgreSQL
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE rental_orders DROP CONSTRAINT IF EXISTS rental_orders_status_check");
+        }
         
         Schema::dropIfExists('rental_orders');
     }
