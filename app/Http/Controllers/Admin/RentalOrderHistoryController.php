@@ -113,7 +113,7 @@ class RentalOrderHistoryController extends Controller
             'cancelled_orders' => RentalOrder::where('status', 'cancelled')->count(),
         ];
 
-        return Inertia::render('admin/orders/history', [
+        return Inertia::render('admin/orders/orderHistory/index', [
             'orders' => $orders,
             'stats' => $stats,
             'filters' => $request->only([

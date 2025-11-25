@@ -64,7 +64,7 @@ class RentalOrderController extends Controller
             ];
         });
 
-        return Inertia::render('admin/orders/index', [
+        return Inertia::render('admin/orders/Approval/index', [
             'orders' => $orders,
         ]);
     }

@@ -99,28 +99,7 @@ Frontend Implementation Plan for Multi-Vehicle Rental
      •  Status filter
      •  Vehicle count range filter
      •  Export functionality
-
-   2.4 Admin Components
-
-   A. OrderTable Component 
-   (`/resources/js/components/admin/order-table.tsx`)
-   •  Reusable table for order lists
-   •  Sorting capabilities
-   •  Status badges
-   •  Action buttons
-   •  Pagination
-
-   B. OrderStatusBadge Component (`/resources/js/compone
-   nts/admin/order-status-badge.tsx`)
-   •  Color-coded status indicators
-   •  Draft (gray), Ongoing (blue), Completed (green),
-      Cancelled (red)
-
-   C. OrderFilters Component 
-   (`/resources/js/components/admin/order-filters.tsx`)
-   •  Filter form for history page
-   •  Date inputs, search field, status select
-
+     
    Phase 3: Shared Components & Utilities
 
    3.1 Create DateRange Picker 

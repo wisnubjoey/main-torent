@@ -17,16 +17,14 @@ import { cn, resolveUrl } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-
     Bell,
-    ChevronDown,
     LayoutDashboard,
     Settings,
     ShieldCheck,
     Users,
     ShoppingCart,
 } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode } from 'react';
 
 import { dashboard as adminDashboard } from '@/routes/admin';
 
@@ -38,7 +36,7 @@ interface AdminLayoutProps {
     actions?: ReactNode;
 }
 
-const adminNavItems: NavItem[] = [
+const mainNavItems: NavItem[] = [
     {
         title: 'Overview',
         href: adminDashboard(),
@@ -54,22 +52,22 @@ const adminNavItems: NavItem[] = [
         href: '/admin/user-management',
         icon: Users,
     },
+];
 
+const orderNavItems: NavItem[] = [
     {
-        title: 'Order',
-        href: '#',
+        title: 'Approval',
+        href: '/admin/order/Approval',
         icon: ShoppingCart,
-        children: [
-            {
-                title: 'Approval',
-                href: '/admin/order/Approval',
-            },
-            {
-                title: 'Order History',
-                href: '/admin/order/orderHistory',
-            },
-        ],
     },
+    {
+        title: 'Order History',
+        href: '/admin/order/orderHistory',
+        icon: ShoppingCart,
+    },
+];
+
+const settingsNavItems: NavItem[] = [
     {
         title: 'Settings',
         href: '/admin/settings',
@@ -172,7 +170,6 @@ function AdminHeader({
 
 function AdminSidebar() {
     const page = usePage();
-    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -190,76 +187,63 @@ function AdminSidebar() {
 
             <SidebarContent className="gap-4">
                 <SidebarMenu>
-                    {adminNavItems.map((item) => {
+                    {mainNavItems.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={page.url.startsWith(resolveUrl(item.href))}
+                                tooltip={{ children: item.title }}
+                            >
+                                <Link
+                                    href={item.href}
+                                    prefetch={typeof item.href === 'string' ? false : true}
+                                >
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
 
+                <SidebarMenu>
+                    {orderNavItems.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={page.url.startsWith(resolveUrl(item.href))}
+                                tooltip={{ children: item.title }}
+                            >
+                                <Link
+                                    href={item.href}
+                                    prefetch={typeof item.href === 'string' ? false : true}
+                                >
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
 
-                        const isOpen = openDropdown === item.title;
-                        
-                        return (
-                            <SidebarMenuItem key={item.title}>
-                                {item.children ? (
-                                    <>
-                                        <SidebarMenuButton
-                                            isActive={page.url.startsWith(resolveUrl(item.children[0]?.href || ''))}
-                                            tooltip={{
-                                                children: item.title,
-                                            }}
-                                            onClick={() => setOpenDropdown(isOpen ? null : item.title)}
-                                            className="cursor-pointer"
-                                        >
-                                            {item.icon && <item.icon />}
-                                            <span>{item.title}</span>
-                                            <ChevronDown className={`ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                                        </SidebarMenuButton>
-                                        
-                                        {isOpen && (
-                                            <SidebarMenu className="ml-4">
-                                                {item.children.map((child) => (
-                                                    <SidebarMenuItem key={child.title}>
-                                                        <SidebarMenuButton
-                                                            asChild
-                                                            isActive={page.url.startsWith(
-                                                                resolveUrl(child.href),
-                                                            )}
-                                                            tooltip={{
-                                                                children: child.title,
-                                                            }}
-                                                        >
-                                                            <Link href={child.href}>
-                                                                <span>{child.title}</span>
-                                                            </Link>
-                                                        </SidebarMenuButton>
-                                                    </SidebarMenuItem>
-                                                ))}
-                                            </SidebarMenu>
-                                        )}
-                                    </>
-                                ) : (
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={page.url.startsWith(
-                                            resolveUrl(item.href),
-                                        )}
-                                        tooltip={{
-                                            children: item.title,
-                                        }}
-                                    >
-                                        <Link
-                                            href={item.href}
-                                            prefetch={
-                                                typeof item.href === 'string'
-                                                    ? false
-                                                    : true
-                                            }
-                                        >
-                                            {item.icon && <item.icon />}
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                )}
-                            </SidebarMenuItem>
-                        );
-                    })}
+                <SidebarMenu>
+                    {settingsNavItems.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={page.url.startsWith(resolveUrl(item.href))}
+                                tooltip={{ children: item.title }}
+                            >
+                                <Link
+                                    href={item.href}
+                                    prefetch={typeof item.href === 'string' ? false : true}
+                                >
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
                 </SidebarMenu>
             </SidebarContent>
 

@@ -167,6 +167,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('order/Approval', [RentalOrderController::class, 'index'])->name('orders.approval');
         Route::get('order/orderHistory', [RentalOrderHistoryController::class, 'index'])->name('orders.history');
 
+        // Rental order detail and actions
+        Route::post('orders/{order}/start', [RentalOrderController::class, 'start'])->name('orders.start');
+        Route::post('orders/{order}/complete', [RentalOrderController::class, 'complete'])->name('orders.complete');
+        Route::post('orders/{order}/cancel', [RentalOrderController::class, 'cancel'])->name('orders.cancel');
+
         Route::post('logout', [AdminAuthenticatedSessionController::class, 'destroy'])
             ->name('logout');
     });
