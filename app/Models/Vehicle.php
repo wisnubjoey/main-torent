@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use App\Models\Brand;
 use App\Models\VehicleClass;
 use App\Models\VehicleImage;
+use App\Models\RentalOrderItem;
 
 class Vehicle extends Model {
     protected $fillable = [
@@ -36,6 +37,10 @@ class Vehicle extends Model {
 
     public function images() {
         return $this->hasMany(VehicleImage::class);
+    }
+
+    public function rentalOrderItems() {
+        return $this->hasMany(RentalOrderItem::class);
     }
 
     // Helpers
