@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminAuthenticatedSessionController;
+use App\Http\Controllers\Admin\RentalOrderController;
+use App\Http\Controllers\Admin\RentalOrderHistoryController;
+use App\Http\Controllers\User\RentalCartController;
+use App\Http\Controllers\User\VehicleController;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -80,6 +84,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     })->name('dashboard.vehicles');
     
+    Route::get('vehicles', [VehicleController::class, 'index'])->name('vehicles');
+    
+    // Rental cart routes
+    Route::post('rental-cart/add', [RentalCartController::class, 'add'])->name('rental-cart.add');
+    Route::post('rental-cart/update', [RentalCartController::class, 'update'])->name('rental-cart.update');
+    Route::post('rental-cart/remove', [RentalCartController::class, 'remove'])->name('rental-cart.remove');
+    Route::post('rental-cart/checkout', [RentalCartController::class, 'checkout'])->name('rental-cart.checkout');
+    Route::get('my-orders', [RentalCartController::class, 'myOrders'])->name('my-orders');
+    
     Route::get('vehicle', function () {
         return Inertia::render('user/vehicle');
     })->name('vehicle');
@@ -105,6 +118,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('user-management', function () {
             return Inertia::render('admin/user-management/index');
         })->name('user-management');
+
+
 
         // Brand management
         Route::get('brand-management', [App\Http\Controllers\Admin\BrandController::class, 'index'])->name('brand-management');
@@ -147,6 +162,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('secondary/{image}/alt', [App\Http\Controllers\Admin\VehicleSecondaryImageController::class, 'updateAlt'])
                 ->name('vehicle-images.secondary.updateAlt');
         });
+
+        // Rental order management
+        Route::get('order/Approval', [RentalOrderController::class, 'index'])->name('orders.approval');
+        Route::get('order/orderHistory', [RentalOrderHistoryController::class, 'index'])->name('orders.history');
 
         Route::post('logout', [AdminAuthenticatedSessionController::class, 'destroy'])
             ->name('logout');

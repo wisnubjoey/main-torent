@@ -17,10 +17,13 @@ export interface NavGroup {
 }
 
 export interface NavItem {
+    isDivider: unknown;
     title: string;
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    children?: NavItem[];
+    isDivider?: boolean;
 }
 
 export interface SharedData {

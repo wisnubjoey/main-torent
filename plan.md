@@ -1,255 +1,134 @@
-Product Requirements Document (PRD)
-Vehicle Rental Order Module
-1. Purpose
+PRD – Multi-Vehicle Rental Order System (Laravel)
 
-This document defines the functional and business requirements for the vehicle rental order module. The system supports simple booking flows without online payments. Verification is handled through WhatsApp after an order is created.
+Final version with PostgreSQL-friendly VARCHAR + CHECK constraints (no ENUM).
 
-Primary flow:
+1. Overview
 
-User selects a vehicle from dashboard → chooses vehicles that is available for the selected date range → submits order (status = draft) → receives WhatsApp verification CTA → admin verifies and progresses the order status until completion.
+Build a rental system where:
 
-The PRD focuses exclusively on:
+A logged-in user selects multiple vehicles.
 
-Creating rental orders
+Selected vehicles appear in a bottom rental cart panel.
 
-Order status lifecycle
+User sets per-vehicle configuration: start datetime, rent mode, quantity.
 
-Availability checking
+System computes per-item subtotal and overall total.
 
-WhatsApp verification (not important)
+Checkout creates a draft rental order.
 
-Rental workflows for admin and user
+Admin reviews, starts rent, completes/cancels.
 
-2. Scope
+Vehicles can be combined in any configuration.
 
-The scope of this module includes:
+2. Roles & Goals
+Roles
 
-User capabilities
+User (Customer)
 
-Browse available vehicles.
+Browse vehicles.
 
-Search for vehicles based on availability (date range).
+Add vehicles to rental cart.
 
-Select rental duration: daily, weekly, or monthly.
+Configure rental details.
 
-Create an order with basic personal info.
+Submit order.
 
-Receive a WhatsApp CTA for manual verification (redirect to whatsapp).
+Admin
 
-Admin capabilities
+Review draft orders.
 
-View all orders by status.
+Start rentals.
 
-Verify orders manually and update statuses.
+Complete rentals.
 
-Mark rental start and end.
+Cancel orders.
 
-Close or cancel orders.
+View history.
 
-Not included:
+Goals (v1)
 
-Online payments
+Support multi-vehicle orders.
 
-Promo codes
+Per-item configuration (start_at, mode, quantity).
 
-Dynamic pricing (later)
+Price calculation.
 
-Return inspections
+Availability checking.
 
-Full CRM/customer identity workflows
+Status flow: draft → ongoing → completed/cancelled.
 
-3. Terminology & Status Models
-3.1 Vehicle Status (vehicles.status)
+3. User Flows
+3.1 User Workflow – Create Rental Order
 
-active
-Vehicle can be rented.
+Login.
 
-maintenance
-Vehicle unavailable for scheduling.
+Browse Vehicles – user sees vehicle list and pricing.
 
-retired
-Vehicle permanently removed from active rental inventory.
+Add vehicle to cart – only the vehicle is added; no configuration yet.
 
-3.2 Rental Order Status (rentals.status)
+Checkout (Step 1) – user proceeds to a configuration screen containing all cart items.
 
-draft
-User created the order; awaiting admin verification.
+Configure each item:
 
-reserved
-Admin has verified and locked the dates.
+start_at (required datetime)
 
-ongoing
-Vehicle is handed over to customer; rental period running.
+mode (daily / weekly / monthly)
 
-returned
-Customer has returned the vehicle; admin review pending.
+quantity (>=1) System automatically computes:
 
-cancelled
-Order voided; no rental occurred.
+end_at
 
-closed
-Order fully completed after return and admin checks.
+subtotal
 
-cancelled and closed are terminal states.
+Apply Order (Final Checkout) – after confirming all data, system creates rental_orders and rental_order_items.
 
-4. Actors
-Customer (User)
+Cart is cleared.
 
-Selects available vehicle and date range.
+3.2 Admin Workflow – Order Management
 
-Creates a rental order.
+Admin receives a new sidebar menu:
 
-Contacts admin via WhatsApp for verification.
+Sidebar → Order
 
-Administrator
+Approval (showing draft + ongoing orders only)
 
-Reviews and verifies orders (via WhatsApp communication outside system).
+Order History (showing completed + cancelled orders)
 
-Manages order lifecycle.
+Approval Page
 
-Ensures vehicle availability.
+Shows list of incoming (draft) and active (ongoing) orders.
 
-Marks rental start and finish.
+Admin actions:
 
-5. Core Flows (Happy Path)
-5.1 Order Creation Flow (User)
+View Detail – inspect items, pricing, period.
 
-User selects a vehicle.
+Start Rent – re-check availability → set status ongoing.
 
-User chooses:
+Complete Rent – set status completed.
 
-Start date
+Cancel Order – set status cancelled.
 
-Rental type: daily, weekly, or monthly
+Order History Page
 
-Duration (example: 3 days, 2 weeks, 1 month)
+Shows completed and cancelled orders.
 
-System computes:
+Admin can filter by:
 
-end_date = start_date + duration
+Date range
 
-System validates availability:
+User
 
-Vehicle must be active.
+Status
 
-No overlapping rentals for the same vehicle with statuses:
-reserved, ongoing, or returned.
+Vehicle count range
 
-Explanation of overlapping:
-Two date ranges overlap if they share at least one day.
+4. Data Model
 
-If available:
+This section replaces ENUM definitions with VARCHAR + CHECK, compatible with PostgreSQL.
 
-System displays rental summary and total price.
+4.1 vehicles table (existing)
 
-User submits the order.
-
-System creates order with:
-
-Status = draft
-
-Pricing snapshot (copied from vehicle)
-
-Saved rental details (start_date, end_date, rental type)
-
-Customer info (name, phone, notes)
-
-System displays:
-
-Success message
-
-Order code
-
-WhatsApp CTA button
-
-5.2 WhatsApp Verification Flow
-
-After order creation:
-
-User clicks "Verify on WhatsApp".
-
-System opens:
-
-wa.me/<admin_number>?text=<pre-filled verification message>
-
-
-User and admin communicate externally (via WhatsApp) for:
-
-Identity verification
-
-Rental confirmation
-
-Additional instructions
-
-No automated payment or approval inside the system.
-
-5.3 Admin Verification Flow (Draft → Reserved)
-
-Admin opens order list (status = draft).
-
-Admin manually verifies user via WhatsApp.
-
-Admin checks availability again (system assistance recommended).
-
-Admin sets status:
-
-draft → reserved
-
-Once reserved:
-
-Vehicle is locked for the selected date range.
-
-No other orders may reserve the same dates for that vehicle.
-
-5.4 Rental Start (Reserved → Ongoing)
-
-On the actual handover day, admin updates:
-
-reserved → ongoing
-
-System records:
-
-actual_start_datetime (optional)
-
-During ongoing, the vehicle remains unavailable.
-
-5.5 Rental End & Completion (Ongoing → Returned → Closed)
-
-Upon vehicle return:
-
-Admin updates ongoing → returned
-
-After checks & admin processing:
-
-Admin updates returned → closed
-
-6. Alternative Flows (Cancellation)
-Draft State Cancellation
-
-Admin may cancel:
-draft → cancelled
-(e.g., user unresponsive)
-
-Reserved State Cancellation
-
-Admin may cancel:
-reserved → cancelled
-(e.g., user backs out before pickup)
-
-Orders in ongoing cannot be cancelled. They must follow:
-
-ongoing → returned → closed
-
-7. Business Rules
-
-Vehicle availability is determined by:
-
-vehicles.status = active
-
-No date overlaps with existing rental orders in status:
-reserved, ongoing, returned
-
-Total rental price uses vehicle’s pricing fields:
+Includes pricing fields:
 
 price_daily_idr
 
@@ -257,88 +136,178 @@ price_weekly_idr
 
 price_monthly_idr
 
-When the order is created:
+4.2 rental_orders table (modified)
 
-Prices are copied into the rental order (pricing snapshot).
+Represents a single checkout session.
 
-This preserves historical records even if vehicle pricing changes later.
+rental_orders
+- id (PK)
+- user_id (FK → users.id)
+- status VARCHAR(20) NOT NULL
+         CHECK (status IN ('draft','ongoing','completed','cancelled'))
+- total_price_idr BIGINT
+- notes TEXT NULL
+- created_at
+- updated_at
+Status semantics
 
-WhatsApp contact number must be configurable.
+draft: user created order, waiting for admin
 
-No payment logic is included in this phase.
+ongoing: admin started rent
 
-8. Data Specification (Order Entity)
+completed: rent finished
 
-Minimum fields required:
+cancelled: order voided
 
-id
+4.3 rental_order_items table (modified)
 
-order_code
+Represents each vehicle rented within an order.
 
-user_id (or simple customer contact fields)
+rental_order_items
+- id (PK)
+- rental_order_id (FK → rental_orders.id)
+- vehicle_id (FK → vehicles.id)
+
+
+- mode VARCHAR(20) NOT NULL
+       CHECK (mode IN ('daily','weekly','monthly'))
+- quantity INTEGER NOT NULL
+
+
+- start_at TIMESTAMP NOT NULL
+- end_at TIMESTAMP NOT NULL
+
+
+- price_per_unit_idr BIGINT
+- subtotal_price_idr BIGINT
+
+
+- created_at
+- updated_at
+Relationships (Laravel Eloquent)
+User hasMany RentalOrder
+RentalOrder belongsTo User
+RentalOrder hasMany RentalOrderItem
+RentalOrderItem belongsTo RentalOrder
+RentalOrderItem belongsTo Vehicle
+Vehicle hasMany RentalOrderItem
+5. Business Rules
+5.1 Time Calculation
+
+daily → +1 day × quantity
+
+weekly → +7 days × quantity
+
+monthly (v1 simplified) → +30 days × quantity
+
+Preserve hour/minute.
+
+Interval defined as [start_at, end_at).
+
+5.2 Pricing Calculation
+
+daily → vehicle.price_daily_idr
+
+weekly → vehicle.price_weekly_idr
+
+monthly → vehicle.price_monthly_idr
+
+subtotal = price × quantity
+
+total = sum of subtotals
+
+Store snapshot price_per_unit_idr & subtotal to maintain history consistency.
+
+5.3 Availability Check
+
+Check for overlapping rentals for each vehicle, comparing against rental_order_items whose parent order has status in:
+
+draft, ongoing
+
+Overlap rule:
+
+A_start < B_end AND A_end > B_start
+
+If overlapping → reject.
+
+5.4 Status Flow
+draft → ongoing → completed
+ draft → cancelled
+ ongoing → cancelled
+
+Items follow order status.
+
+6. Laravel Implementation Outline
+6.1 User Routes
+Route::middleware(['auth'])->group(function() {
+    GET /vehicles
+    POST /rental-cart/add
+    POST /rental-cart/update
+    POST /rental-cart/checkout
+    GET /my-orders
+});
+6.2 Admin Routes
+Route::middleware(['auth','can:manage-orders'])->group(function () {
+    GET /admin/orders
+    GET /admin/orders/{order}
+    POST /admin/orders/{order}/start
+    POST /admin/orders/{order}/complete
+    POST /admin/orders/{order}/cancel
+    GET /admin/orders/history
+});
+6.3 Rental Cart UI
+
+Each cart row contains:
 
 vehicle_id
 
-status
+mode
 
-start_date
+quantity
 
-end_date
+start_at
 
-rental_unit (daily, weekly, monthly)
+Computed: end_at, subtotal
 
-rental_quantity (number of days/weeks/months)
+Checkout sends compiled payload to controller.
 
-price_daily_snapshot
+7. Screens Summary
+7.1 Vehicles Page
 
-price_weekly_snapshot
+Vehicle list
 
-price_monthly_snapshot
+"Rent" button
 
-total_price
+Bottom Cart Panel with:
 
-customer_name
+start_at
 
-customer_phone
+mode
 
-customer_notes
+quantity
 
-actual_start_datetime (optional)
+auto-calculated end_at
 
-actual_end_datetime (optional)
+subtotal
 
-created_at
+remove
 
-updated_at
+grand total
 
-9. Future Extensions (Not Required Now) NOT IMPORTANT FOR NOW!
+7.2 Admin – Orders List
 
-This PRD anticipates but does not require:
+Columns: ID, User, vehicle count, period, total, status, actions.
 
-Dynamic pricing
+7.3 Admin – Order Detail
 
-Coupon/discount system
+Shows all items and header data. Buttons:
 
-Auto-reminders (email/WhatsApp)
+Start
 
-Order aging & auto-cancel (e.g., draft expires after X hours)
+Complete
 
-Payment module
+Cancel
 
-Cross-branch vehicle management
+7.4 Admin – Order History
 
-Mobile app API
-
-Feature that already implemented :
-- User dashboard reorganization with structured page hierarchy (dashboard/index and dashboard/vehicles)
-- Navigation system with sidebar menu including Dashboard and Vehicles links
-- Vehicle management system for admin (brand, vehicle class, and vehicle management)
-- Public vehicles page with vehicle listing
-- User authentication system (login, register)
-- Admin authentication system with separate login
-- Vehicle image management (primary and secondary images)
-- Basic UI components and layouts for both user and admin interfaces
-- Route management with Laravel Inertia.js integration
-- Responsive design with Tailwind CSS and shadcn/ui components
-
-test
+Shows completed + cancelled. Filters: user, date, status.
