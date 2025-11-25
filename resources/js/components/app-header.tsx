@@ -27,12 +27,13 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserMenuContent } from '@/components/user-menu-content';
+import { useCart } from '@/context/cart-context';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, ShoppingCart } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -69,6 +70,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     const user = auth.user;
     const getInitials = useInitials();
+    const { getCartCount } = useCart();
+    const cartCount = getCartCount();
 
     if (!user) {
         return null;
@@ -195,8 +198,26 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 variant="ghost"
                                 size="icon"
                                 className="group h-9 w-9 cursor-pointer"
+                                asChild
                             >
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
+                                <Link href="/dashboard/vehicles">
+                                    <Search className="!size-5 opacity-80 group-hover:opacity-100" />
+                                </Link>
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="group h-9 w-9 cursor-pointer relative"
+                                asChild
+                            >
+                                <Link href="/dashboard/vehicles">
+                                    <ShoppingCart className="!size-5 opacity-80 group-hover:opacity-100" />
+                                    {cartCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                                            {cartCount > 9 ? '9+' : cartCount}
+                                        </span>
+                                    )}
+                                </Link>
                             </Button>
                             <div className="hidden lg:flex">
                                 {rightNavItems.map((item) => (
