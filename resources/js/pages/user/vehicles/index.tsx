@@ -1,9 +1,9 @@
 "use client"
 
 import { VehicleCard } from "@/components/ui/vehicle-card"
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import UserLayout from '@/layouts/user/UserLayout';
-import { Button } from '@/components/ui/button'
+ 
 
 type Vehicle = {
   id: number
@@ -14,6 +14,8 @@ type Vehicle = {
   image_url?: string | null
   primary_image_alt?: string | null
   price_daily_idr?: number | null
+  seat_count?: number | null
+  in_cart?: boolean
 }
 
 export default function Vehicles({ vehicles = [] as Vehicle[] }: { vehicles?: Vehicle[] }) {
@@ -28,15 +30,13 @@ export default function Vehicles({ vehicles = [] as Vehicle[] }: { vehicles?: Ve
                 name={[v.brand, v.model].filter(Boolean).join(" ")}
                 description={[v.production_year, v.transmission].filter(Boolean).join(" • ")}
                 image={v.image_url ?? "/logo.svg"}
+                seatCount={v.seat_count ?? null}
+                transmission={v.transmission ?? null}
+                priceDailyIdr={v.price_daily_idr ?? null}
+                vehicleId={v.id}
+                inCart={v.in_cart ?? false}
               />
-              <div className="flex items-center gap-3">
-                {v.price_daily_idr != null && (
-                  <span className="text-sm text-muted-foreground">Daily: IDR {v.price_daily_idr}</span>
-                )}
-                <Link href="/cart/items" method="post" data={{ vehicle_id: v.id }}>
-                  <Button size="sm">Add to Cart</Button>
-                </Link>
-              </div>
+              <div className="flex items-center gap-3" />
             </div>
           ))}
         </div>

@@ -1,37 +1,82 @@
 import { motion, useReducedMotion, Variants } from "framer-motion"
-import { Check, Users, UserCheck } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-
+import { router } from "@inertiajs/react"
 interface VehicleCardProps {
   name?: string
   description?: string
   image?: string
-  isVerified?: boolean
-  followers?: number
-  following?: number
+  seatCount?: number | string | null
+  transmission?: string | null
+  priceDailyIdr?: number | string | null
   enableAnimations?: boolean
   className?: string
-  onFollow?: () => void
-  isFollowing?: boolean
+  vehicleId?: number
+  rentHref?: string
+  onRent?: () => void
+  inCart?: boolean
 }
 
 export function VehicleCard({
-  name = "Sophie Bennett",
-  description = "Product Designer who focuses on simplicity & usability.",
-  image = "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=800&h=800&fit=crop&auto=format&q=80",
-  isVerified = true,
-  followers = 312,
-  following = 48,
+  name = "Vehicle",
+  description = "",
+  image = "/logo.svg",
+  seatCount = null,
+  transmission = null,
+  priceDailyIdr = null,
   enableAnimations = true,
   className,
-  onFollow = () => {},
-  isFollowing = false,
+  vehicleId,
+  rentHref = "/cart/items",
+  onRent,
+  inCart = false,
 }: VehicleCardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hovered, setHovered] = useState(false)
   const shouldReduceMotion = useReducedMotion()
   const shouldAnimate = enableAnimations && !shouldReduceMotion
+  const [renting, setRenting] = useState(false)
+  const [optimisticAdded, setOptimisticAdded] = useState<boolean | null>(null)
+  const added = optimisticAdded ?? !!inCart
+  const [toastOpen, setToastOpen] = useState(false)
+  const [toastText, setToastText] = useState("")
+
+  
+
+  const handleRent = () => {
+    if (added) {
+      if (vehicleId != null) {
+        setRenting(true)
+        router.delete(`/cart/items/by-vehicle/${vehicleId}`, {
+          onSuccess: () => {
+            setRenting(false)
+            setOptimisticAdded(false)
+            setToastText("Removed from cart")
+            setToastOpen(true)
+            setTimeout(() => setToastOpen(false), 2000)
+          },
+          onFinish: () => setRenting(false),
+        })
+      }
+      return
+    }
+    if (onRent) {
+      onRent()
+      return
+    }
+    if (vehicleId != null) {
+      setRenting(true)
+      router.post(rentHref, { vehicle_id: vehicleId }, {
+        onSuccess: () => {
+          setOptimisticAdded(true)
+          setToastText("Added to cart")
+          setToastOpen(true)
+          setTimeout(() => setToastOpen(false), 2000)
+        },
+        onFinish: () => setRenting(false),
+      })
+    }
+  }
 
   const containerVariants: Variants = {
   rest: { 
@@ -152,88 +197,84 @@ export function VehicleCard({
         animate="visible"
         className="absolute bottom-0 left-0 right-0 p-6 space-y-4"
       >
-        {/* Name and Verification */}
-        <motion.div variants={itemVariants} className="flex items-center gap-2">
-          <motion.h2 
-            className="text-2xl font-bold text-foreground"
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.02,
-                }
+      {/* Name */}
+      <motion.div variants={itemVariants} className="flex items-center gap-2">
+        <motion.h2 
+          className="text-2xl font-bold text-foreground"
+          variants={{
+            visible: {
+              transition: {
+                staggerChildren: 0.02,
               }
-            }}
-          >
-            {name.split("").map((letter, index) => (
-              <motion.span
-                key={index}
-                variants={letterVariants}
-                className="inline-block"
-              >
-                {letter === " " ? "\u00A0" : letter}
-              </motion.span>
-            ))}
-          </motion.h2>
-          {isVerified && (
-            <motion.div 
-              variants={itemVariants}
-              className="flex items-center justify-center w-4 h-4 rounded-full bg-green-500 text-white"
-              whileHover={{ 
-                scale: 1.1, 
-                rotate: 5,
-                transition: { type: "spring", stiffness: 400, damping: 20 }
-              }}
-            >
-              <Check className="w-2.5 h-2.5" />
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* Description */}
-        <motion.p 
-          variants={itemVariants}
-          className="text-muted-foreground text-sm leading-relaxed"
-        >
-          {description}
-        </motion.p>
-
-        {/* Stats */}
-        <motion.div 
-          variants={itemVariants}
-          className="flex items-center gap-6 pt-2"
-        >
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="w-4 h-4" />
-            <span className="font-semibold text-foreground">{followers}</span>
-            <span className="text-sm">followers</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <UserCheck className="w-4 h-4" />
-            <span className="font-semibold text-foreground">{following}</span>
-            <span className="text-sm">following</span>
-          </div>
-        </motion.div>
-
-        {/* Follow Button */}
-        <motion.button
-          variants={itemVariants}
-          onClick={onFollow}
-          whileHover={{ 
-            scale: 1.02,
-            transition: { type: "spring", stiffness: 400, damping: 25 }
+            }
           }}
-          whileTap={{ scale: 0.98 }}
-          className={cn(
-            "w-full cursor-pointer py-3 px-4 rounded-2xl font-semibold text-sm transition-all duration-200",
-            "border border-border/20 shadow-sm",
-            isFollowing 
-              ? "bg-muted text-muted-foreground hover:bg-muted/80" 
-              : "bg-foreground text-background hover:bg-foreground/90",
-            "transform-gpu"
-          )}
         >
-          {isFollowing ? "Following" : "Follow +"}
-        </motion.button>
+          {name.split("").map((letter, index) => (
+            <motion.span
+              key={index}
+              variants={letterVariants}
+              className="inline-block"
+            >
+              {letter === " " ? "\u00A0" : letter}
+            </motion.span>
+          ))}
+        </motion.h2>
+      </motion.div>
+
+      {/* Description */}
+      <motion.p 
+        variants={itemVariants}
+        className="text-muted-foreground text-sm leading-relaxed"
+      >
+        {description}
+      </motion.p>
+
+      {/* Vehicle facts */}
+      <motion.div 
+        variants={itemVariants}
+        className="flex items-center gap-3 pt-2 text-xs text-muted-foreground"
+      >
+        {seatCount != null && (
+          <span className="inline-flex items-center gap-1">{String(seatCount)} seats</span>
+        )}
+        {transmission && (
+          <span className="inline-flex items-center gap-1 capitalize">{transmission}</span>
+        )}
+        {priceDailyIdr != null && (
+          <span className="ml-auto font-medium text-foreground">Daily: IDR {priceDailyIdr}</span>
+        )}
+      </motion.div>
+
+      {/* Rent Button */}
+      <motion.button
+        variants={itemVariants}
+        onClick={handleRent}
+        whileHover={{ 
+          scale: 1.02,
+          transition: { type: "spring", stiffness: 400, damping: 25 }
+        }}
+        whileTap={{ scale: 0.98 }}
+        className={cn(
+          "w-full cursor-pointer py-3 px-4 rounded-2xl font-semibold text-sm transition-all duration-200",
+          "border border-border/20 shadow-sm",
+          added ? "bg-red-600 text-white hover:bg-red-700" : "bg-foreground text-background hover:bg-foreground/90",
+          "transform-gpu"
+        )}
+        disabled={renting}
+      >
+        {added ? "Cancel" : "+ Rent"}
+      </motion.button>
+
+      {toastOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          className="pointer-events-none fixed right-4 top-16 z-50 flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm shadow"
+        >
+          <span className="font-medium">{toastText}</span>
+        </motion.div>
+      )}
       </motion.div>
     </motion.div>
   )

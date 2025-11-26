@@ -54,4 +54,16 @@ class CartController extends Controller
         $item->delete();
         return redirect()->back()->with('success', 'Removed from cart');
     }
+
+    public function destroyByVehicle(Vehicle $vehicle)
+    {
+        $user = Auth::user();
+        $cart = Cart::forUser($user->id);
+        $item = CartItem::where('cart_id', $cart->id)->where('vehicle_id', $vehicle->id)->first();
+        if (!$item) {
+            return redirect()->back()->with('success', 'Nothing to remove');
+        }
+        $item->delete();
+        return redirect()->back()->with('success', 'Removed from cart');
+    }
 }

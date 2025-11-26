@@ -2,6 +2,8 @@ import AdminLayout from '@/layouts/admin/AdminLayout'
 import { Head, Link } from '@inertiajs/react'
 import { Button } from '@/components/ui/button'
 
+const NOW = Date.now()
+
 type Order = {
   id: number
   end_at: string
@@ -15,18 +17,28 @@ export default function AdminOrdersOngoing({ orders = [] as Order[] }: { orders?
       <Head title="On Going" />
       <div className="grid gap-4">
         {orders.length === 0 && <div className="text-muted-foreground">No ongoing orders</div>}
-        {orders.map((o) => (
-          <div key={o.id} className="flex items-center justify-between rounded-md border p-4">
-            <div className="flex flex-col">
-              <span className="font-medium">Order #{o.id}</span>
-              <span className="text-sm text-muted-foreground">Ends {new Date(o.end_at).toLocaleDateString()}</span>
-              <span className="text-sm">Items {o.items?.length ?? 0}</span>
+        {orders.map((o) => {
+          const ended = new Date(o.end_at).getTime() <= NOW || !!o.is_completable
+          return (
+            <div key={o.id} className="flex items-center justify-between rounded-md border p-4">
+              <div className="flex flex-col">
+                <span className="font-medium">Order #{o.id}</span>
+                <span className="text-sm text-muted-foreground">Ends {new Date(o.end_at).toLocaleDateString()}</span>
+                <span className="text-sm">Items {o.items?.length ?? 0}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href={`/admin/orders/${o.id}/complete`} method="post">
+                  <Button
+                    disabled={!ended}
+                    className={ended ? "bg-green-600 hover:bg-green-700 text-white" : undefined}
+                  >
+                    Complete
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Link href={`/admin/orders/${o.id}/complete`} method="post"><Button disabled={!o.is_completable}>Complete</Button></Link>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </AdminLayout>
   )
