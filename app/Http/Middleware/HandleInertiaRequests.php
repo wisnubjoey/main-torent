@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
+use App\Models\Cart;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -42,6 +43,11 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $adminGuard = Auth::guard('admin');
         $adminUser = $adminGuard->check() ? $adminGuard->user() : null;
+        $cartCount = 0;
+        if ($user) {
+            $activeCart = Cart::where('user_id', $user->id)->where('status', 'active')->withCount('items')->first();
+            $cartCount = $activeCart?->items_count ?? 0;
+        }
 
         return [
             ...parent::share($request),
@@ -51,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'admin' => $adminUser,
             ],
+            'cartCount' => $cartCount,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

@@ -22,6 +22,31 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Vehicles',
+        href: '/dashboard/vehicles',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Cart',
+        href: '/cart',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Checkout',
+        href: '/checkout',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'My Orders',
+        href: '/orders',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Order History',
+        href: '/orders/history',
+        icon: LayoutGrid,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

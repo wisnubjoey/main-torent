@@ -1,124 +1,172 @@
-# Torent Image Module – Minimal Plan (Deadline-Friendly)
+✅ USER FLOW (Human Explanation)
+1. User logs in
 
-## Goals
-- Add primary image (nullable) to `vehicles`.
-- Add secondary images (nullable, max 10) per vehicle.
-- Use Laravel public storage with simple paths.
-- Keep files original (no optimization, no orientation fixes).
-- Simple admin UX: upload/replace/delete primary; upload/delete/reorder secondary; set secondary as primary.
-- Optional alt text per image.
+The user enters the system with their account. Nothing complex here — they just authenticate.
 
-## Decisions (Confirmed)
-- Storage: `public` disk; URLs via `/storage/...` (requires `php artisan storage:link`).
-- File types: `jpeg`, `png`, `webp`.
-- Max size: 50 MB per image.
-- Primary/secondary can be null; fallback static image shown if primary missing.
-- No CDN, caching, responsive variants, or security extras for now.
+2. User chooses a vehicle
 
-## Storage Layout
-- Primary: `vehicles/{vehicle_id}/primary/{hashed}.{ext}`
-- Secondary: `vehicles/{vehicle_id}/secondary/{uuid}.{ext}`
-- Store only the path in DB. Generate URL with `Storage::disk('public')->url($path)`.
+They go to the Vehicles menu, browse available vehicles, and select the ones they want to rent.
 
-## Database Changes
-- Vehicles table:
-  - Add `primary_image_path` (string, nullable).
-  - Add `primary_image_alt` (string, nullable) — optional but ready if needed.
-  - Note: If DB is already migrated and not resetting, create a new migration to add these columns.
+When they click “Add to Cart,” the chosen vehicles are placed in a temporary cart (stored behind the scenes in session or database).
 
-- New table: `vehicle_images` (secondary images):
-  - `id` (PK), `vehicle_id` (FK → `vehicles.id`, cascade on delete).
-  - `path` (string, not null).
-  - `position` (unsigned tiny int 0–9).
-  - `alt_text` (string, nullable).
-  - `created_at`, `updated_at`.
-  - Unique index: (`vehicle_id`, `position`) to keep order consistent.
+3. Cart appears on the top
 
-## Models
-- `Vehicle`:
-  - Relationship: `hasMany(VehicleImage::class)` for secondaries.
-  - Accessor: `image_url` returns public URL from `primary_image_path` or null.
-  - Helper: `secondaryImagesOrdered()` returns secondaries ordered by `position`.
+A small cart component shows:
 
-- `VehicleImage`:
-  - `belongsTo(Vehicle::class)`.
+Vehicles selected
 
-## Validation
-- Primary upload: `required|image|mimes:jpeg,png,webp|max:51200`.
-- Secondary upload: `required|image|mimes:jpeg,png,webp|max:51200`.
-- Reorder: `position` must be 0–9; enforce unique per vehicle.
+Quantity
 
-## Controllers & Endpoints (Admin)
-- Primary image:
-  - Upload/replace: store to `public`, set `primary_image_path`, optional `primary_image_alt`.
-  - Delete: remove file; set `primary_image_path` null (fallback static image in UI).
+Maybe a price preview
 
-- Secondary images:
-  - Upload (single or multiple): store to `public`; auto-assign next available `position` (0–9).
-  - Delete: remove file; free the `position`.
-  - Reorder: update `position` values (ensure uniqueness).
-  - Set as Primary: copy selected secondary’s path into `primary_image_path`, then
-    - Option B (chosen): remove the secondary record to avoid duplicates.
+This lets the user keep track while browsing.
 
-- Routes (example structure):
-  - `POST /admin/vehicles/{vehicle}/primary` (upload/replace)
-  - `DELETE /admin/vehicles/{vehicle}/primary` (delete)
-  - `POST /admin/vehicles/{vehicle}/secondary` (upload)
-  - `DELETE /admin/vehicles/{vehicle}/secondary/{image}` (delete)
-  - `PUT /admin/vehicles/{vehicle}/secondary/reorder` (bulk reorder)
-  - `POST /admin/vehicles/{vehicle}/secondary/{image}/promote` (set as primary)
-  - `PUT /admin/vehicles/{vehicle}/secondary/{image}/alt` (update alt text)
+4. Checkout
 
-## Admin UI (Simple First)
-- Primary:
-  - Show current primary or fallback static image.
-  - File input + upload button.
-  - Delete button.
+The user clicks the Checkout button where they:
 
-- Secondary:
-  - Multi-file upload (prevent >10).
-  - List/grid:
-    - Thumbnail, optional alt text field.
-    - Buttons: Delete, Set as Primary.
-    - Position field (0–9) with save; drag-drop can be added later.
+Review selected vehicles
 
-- Counter: Display “x/10 images used”.
+Set rental configuration:
 
-## Business Rules
-- Primary deletion: UI shows static fallback.
-- Secondary cap: reject the 11th image with a friendly message.
-- Positions: integers 0–9, unique per vehicle.
-- Replace primary: delete old primary file.
-- Promote secondary→primary: set primary path, delete secondary record.
+Start date
 
-## Cleanup
-- On vehicle delete: delete `vehicles/{vehicle_id}` directory (primary + all secondaries).
-- On primary replace and secondary delete: delete corresponding files.
+Time type (daily / weekly / monthly)
 
-## Setup Steps
-1. Run: `php artisan storage:link` (exposes `/storage` URLs).
-2. Run migrations to add primary cols and create `vehicle_images`.
-3. Verify `config/filesystems.php` has `public` disk configured (default Laravel settings).
-4. Add static fallback image in your frontend assets and reference it when `image_url` is null.
+Duration (ex: 3 weeks)
 
-## Testing (Minimal)
-- Upload primary: path saved, file exists in `storage/app/public`, URL loads via `/storage/...`.
-- Delete primary: path null, fallback visible.
-- Upload up to 10 secondaries; 11th is blocked.
-- Reorder positions and verify order is reflected.
-- Promote secondary to primary and confirm secondary record removed.
-- Vehicle delete removes directory.
+Quantity (how many units)
 
-## Timeline (Fast Path)
-- Migrations + models: 1–2 hours.
-- Controllers + routes: 1–2 hours.
-- Simple admin views: 2–3 hours.
-- Manual test pass: 1 hour.
-- Buffer: 1 hour.
+The system calculates total rental time and price based on the configuration.
+No order is created yet — the user is still editing.
 
-## Future Enhancements (Post-Deadline)
-- Image optimization and WebP generation.
-- Drag-drop reorder UX.
-- Responsive delivery (`srcset`) and caching headers.
-- Security: strict validation, rate limiting, signed URLs for private content if needed.
-- Observability: upload metrics and error tracking.
+5. User applies the order
+
+When the user presses Confirm, the system creates a “new order” with the status:
+
+🔵 Waiting for Approval
+
+Then a popup appears:
+
+“Please confirm your order with customer service.”
+
+This acts as a reminder for the customer to make contact if needed.
+
+6. My Orders page
+
+The user goes to My Orders, where they see:
+
+Their pending orders
+
+Status such as:
+
+Waiting for Approval
+
+On Going
+
+Cancelled
+
+This page ONLY shows active or pending orders.
+
+Completed orders do not stay here.
+
+7. Order completion (User side)
+
+Once the rental ends (after admin finishes it), the order:
+
+Disappears from “My Orders”
+
+Moves into Orders History
+
+Status becomes Completed
+
+This keeps “My Orders” clean and only shows what’s still active.
+
+✅ ADMIN FLOW (Human Explanation)
+1. Admin dashboard
+
+Admin logs in and sees newly created orders waiting for review.
+
+2. Approval menu
+
+All orders that users have submitted appear here with the status:
+
+🟡 Waiting for Approval
+
+Admin has two choices per order:
+
+Approve
+
+Cancel
+
+When admin approves:
+
+Order status changes to:
+
+🔵 On Going
+
+Order disappears from the Approval list and moves to the On Going list.
+
+When admin cancels:
+
+Order status becomes:
+
+🔴 Cancelled
+3. On Going orders
+
+This list shows all rentals currently active.
+
+The system automatically checks the end date of each order.
+
+When the rental period is finished, the “Complete” button for that order:
+
+Becomes active
+
+Turns green
+
+This is a visual signal:
+
+“This rental is ready to be completed.”
+
+Admin clicks Complete when the rental is fully finished.
+
+4. Order moves to History
+
+After admin marks an order as completed:
+
+It disappears from the On Going list
+
+It moves into Order History
+
+Status becomes Completed
+
+This keeps active lists short and organized.
+
+🔍 Overall System Logic (Simple Technical Explanation)
+
+Each order has a status that changes throughout its life:
+Waiting for Approval → On Going → Completed (or Cancelled)
+
+User has access to:
+
+My Orders → only active statuses
+
+Order History → completed only
+
+Admin manages:
+
+Approval
+
+Active rental monitoring
+
+Completing finished rentals
+
+Rental time (daily/weekly/monthly) is calculated automatically using:
+
+Start date
+
+Type of rent
+
+Duration
+
+This lets the system know when the rental should end and when to activate the “Complete” button.

@@ -1,6 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminAuthenticatedSessionController;
+use App\Http\Controllers\Admin\OrderApprovalController;
+use App\Http\Controllers\Admin\OrderHistoryController;
+use App\Http\Controllers\Admin\OrderOngoingController;
+use App\Http\Controllers\User\CartController;
+use App\Http\Controllers\User\CheckoutController;
+use App\Http\Controllers\User\OrderController as UserOrderController;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,6 +28,9 @@ Route::get('vehicles', function () {
                 'production_year' => $v->production_year,
                 'seat_count' => $v->seat_count,
                 'transmission' => $v->transmission,
+                'price_daily_idr' => $v->price_daily_idr,
+                'price_weekly_idr' => $v->price_weekly_idr,
+                'price_monthly_idr' => $v->price_monthly_idr,
                 'image_url' => $v->image_url,
                 'primary_image_alt' => $v->primary_image_alt,
             ];
@@ -60,6 +69,42 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('confirm-password', function () {
         return Inertia::render('user/auth/confirm-password');
     })->name('password.confirm');
+
+    Route::get('dashboard/vehicles', function () {
+        $vehicles = Vehicle::with(['brand:id,name', 'vehicleClass:id,name'])
+            ->get()
+            ->map(function ($v) {
+                return [
+                    'id' => $v->id,
+                    'vehicle_type' => $v->vehicle_type,
+                    'vehicle_class' => optional($v->vehicleClass)->name ?? '',
+                    'brand' => optional($v->brand)->name ?? '',
+                    'model' => $v->model,
+                    'production_year' => $v->production_year,
+                    'seat_count' => $v->seat_count,
+                    'transmission' => $v->transmission,
+                    'price_daily_idr' => $v->price_daily_idr,
+                    'price_weekly_idr' => $v->price_weekly_idr,
+                    'price_monthly_idr' => $v->price_monthly_idr,
+                    'image_url' => $v->image_url,
+                    'primary_image_alt' => $v->primary_image_alt,
+                ];
+            });
+
+        return Inertia::render('user/vehicles/index', [
+            'vehicles' => $vehicles,
+        ]);
+    })->name('dashboard.vehicles');
+
+    Route::get('cart', [CartController::class, 'index'])->name('cart');
+    Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
+    Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
+
+    Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout');
+    Route::post('checkout/apply', [CheckoutController::class, 'applyOrder'])->name('checkout.apply');
+
+    Route::get('orders', [UserOrderController::class, 'myOrders'])->name('orders.index');
+    Route::get('orders/history', [UserOrderController::class, 'history'])->name('orders.history');
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -123,6 +168,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::post('logout', [AdminAuthenticatedSessionController::class, 'destroy'])
             ->name('logout');
+
+        Route::get('orders/approval', [OrderApprovalController::class, 'index'])->name('orders.approval');
+        Route::post('orders/{order}/approve', [OrderApprovalController::class, 'approve'])->name('orders.approve');
+        Route::post('orders/{order}/cancel', [OrderApprovalController::class, 'cancel'])->name('orders.cancel');
+
+        Route::get('orders/ongoing', [OrderOngoingController::class, 'index'])->name('orders.ongoing');
+        Route::post('orders/{order}/complete', [OrderOngoingController::class, 'complete'])->name('orders.complete');
+
+        Route::get('orders/history', [OrderHistoryController::class, 'index'])->name('orders.history');
     });
 });
 

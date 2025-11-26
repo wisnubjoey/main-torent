@@ -53,6 +53,21 @@ const adminNavItems: NavItem[] = [
         icon: Users,
     },
     {
+        title: 'Orders Approval',
+        href: '/admin/orders/approval',
+        icon: ShieldCheck,
+    },
+    {
+        title: 'Orders Ongoing',
+        href: '/admin/orders/ongoing',
+        icon: LayoutDashboard,
+    },
+    {
+        title: 'Orders History',
+        href: '/admin/orders/history',
+        icon: LayoutDashboard,
+    },
+    {
         title: 'Settings',
         href: '/admin/settings',
         icon: Settings,

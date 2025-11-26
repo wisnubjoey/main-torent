@@ -16,6 +16,9 @@ export default function Navbar({ className }: { className?: string }) {
                     Voyage Rentals
                 </Link>
                 <nav className="flex items-center gap-4 text-sm">
+                    <Link href="/vehicles" className="text-muted-foreground transition hover:text-primary">
+                        Vehicles
+                    </Link>
                     {auth.user ? (
                         <Link href={dashboard()} className="text-muted-foreground transition hover:text-primary">
                             Dashboard
@@ -25,6 +28,7 @@ export default function Navbar({ className }: { className?: string }) {
                             Login
                         </Link>
                     )}
+                    {/* Orders UI lives inside dashboard; keep public navbar minimal */}
                     <Button className="hidden sm:inline-flex" size="sm">
                         Book Concierge
                     </Button>
