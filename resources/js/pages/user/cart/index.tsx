@@ -1,4 +1,4 @@
-import AppLayout from '@/layouts/app-layout'
+import UserLayout from '@/layouts/user/UserLayout'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { Button } from '@/components/ui/button'
 
@@ -28,7 +28,7 @@ type Cart = {
 
 export default function CartIndex({ cart }: { cart: Cart }) {
   return (
-    <AppLayout breadcrumbs={[{ title: 'Cart', href: '/cart' }]}> 
+    <UserLayout breadcrumbs={[{ title: 'Cart', href: '/cart' }]}> 
       <Head title="My Cart" />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -54,6 +54,6 @@ export default function CartIndex({ cart }: { cart: Cart }) {
           ))}
         </div>
       </div>
-    </AppLayout>
+    </UserLayout>
   )
 }

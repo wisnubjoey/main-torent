@@ -9,7 +9,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
+import UserLayout from '@/layouts/user/UserLayout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
 
@@ -29,7 +29,7 @@ export default function Profile() {
     }
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <UserLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
 
             <SettingsLayout>
@@ -114,6 +114,6 @@ export default function Profile() {
                     <DeleteUser />
                 </div>
             </SettingsLayout>
-        </AppLayout>
+        </UserLayout>
     );
 }

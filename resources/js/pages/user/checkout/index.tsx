@@ -1,4 +1,4 @@
-import AppLayout from '@/layouts/app-layout'
+import UserLayout from '@/layouts/user/UserLayout'
 import { Head, Link, useForm } from '@inertiajs/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +8,7 @@ export default function CheckoutIndex() {
   const form = useForm({ start_at: '', time_type: 'daily', duration_units: 1 })
 
   return (
-    <AppLayout breadcrumbs={[{ title: 'Checkout', href: '/checkout' }]}> 
+    <UserLayout breadcrumbs={[{ title: 'Checkout', href: '/checkout' }]}> 
       <Head title="Checkout" />
       <div className="space-y-6">
         <h2 className="text-xl font-semibold">Checkout</h2>
@@ -43,7 +43,6 @@ export default function CheckoutIndex() {
           </div>
         </form>
       </div>
-    </AppLayout>
+    </UserLayout>
   )
 }
-

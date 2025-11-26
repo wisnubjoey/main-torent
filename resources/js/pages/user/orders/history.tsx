@@ -1,4 +1,4 @@
-import AppLayout from '@/layouts/app-layout'
+import UserLayout from '@/layouts/user/UserLayout'
 import { Head } from '@inertiajs/react'
 
 type Order = {
@@ -9,7 +9,7 @@ type Order = {
 
 export default function OrdersHistory({ orders = [] as Order[] }: { orders?: Order[] }) {
   return (
-    <AppLayout breadcrumbs={[{ title: 'Order History', href: '/orders/history' }]}> 
+    <UserLayout breadcrumbs={[{ title: 'Order History', href: '/orders/history' }]}> 
       <Head title="Order History" />
       <div className="space-y-6">
         <h2 className="text-xl font-semibold">Order History</h2>
@@ -28,7 +28,6 @@ export default function OrdersHistory({ orders = [] as Order[] }: { orders?: Ord
           ))}
         </div>
       </div>
-    </AppLayout>
+    </UserLayout>
   )
 }
-
