@@ -9,6 +9,8 @@ use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\OrderController as UserOrderController;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Cart;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -71,9 +73,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('password.confirm');
 
     Route::get('dashboard/vehicles', function () {
+        $userId = Auth::id();
+        $inCartIds = collect();
+        if ($userId) {
+            $inCartIds = Cart::forUser($userId)->items()->pluck('vehicle_id');
+        }
+
         $vehicles = Vehicle::with(['brand:id,name', 'vehicleClass:id,name'])
             ->get()
-            ->map(function ($v) {
+            ->map(function ($v) use ($inCartIds) {
                 return [
                     'id' => $v->id,
                     'vehicle_type' => $v->vehicle_type,
@@ -88,6 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'price_monthly_idr' => $v->price_monthly_idr,
                     'image_url' => $v->image_url,
                     'primary_image_alt' => $v->primary_image_alt,
+                    'in_cart' => $inCartIds->contains($v->id),
                 ];
             });
 
@@ -99,6 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('cart', [CartController::class, 'index'])->name('cart');
     Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
     Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
+    Route::delete('cart/items/by-vehicle/{vehicle}', [CartController::class, 'destroyByVehicle'])->name('cart.items.destroyByVehicle');
 
     Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout');
     Route::post('checkout/apply', [CheckoutController::class, 'applyOrder'])->name('checkout.apply');
