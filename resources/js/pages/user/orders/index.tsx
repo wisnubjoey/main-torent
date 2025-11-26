@@ -1,4 +1,4 @@
-import AppLayout from '@/layouts/app-layout'
+import UserLayout from '@/layouts/user/UserLayout'
 import { Head } from '@inertiajs/react'
 
 type OrderItem = {
@@ -21,7 +21,7 @@ type Order = {
 
 export default function OrdersIndex({ orders = [] as Order[] }: { orders?: Order[] }) {
   return (
-    <AppLayout breadcrumbs={[{ title: 'My Orders', href: '/orders' }]}> 
+    <UserLayout breadcrumbs={[{ title: 'My Orders', href: '/orders' }]}> 
       <Head title="My Orders" />
       <div className="space-y-6">
         <h2 className="text-xl font-semibold">My Orders</h2>
@@ -48,6 +48,6 @@ export default function OrdersIndex({ orders = [] as Order[] }: { orders?: Order
           ))}
         </div>
       </div>
-    </AppLayout>
+    </UserLayout>
   )
 }

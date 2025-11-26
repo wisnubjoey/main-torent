@@ -2,7 +2,7 @@
 
 import { VehicleCard } from "@/components/ui/vehicle-card"
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import UserLayout from '@/layouts/user/UserLayout';
 import { Button } from '@/components/ui/button'
 
 type Vehicle = {
@@ -18,7 +18,7 @@ type Vehicle = {
 
 export default function Vehicles({ vehicles = [] as Vehicle[] }: { vehicles?: Vehicle[] }) {
   return (
-    <AppLayout breadcrumbs={[{ title: 'Vehicles', href: '/dashboard/vehicles' }]}> 
+    <UserLayout breadcrumbs={[{ title: 'Vehicles', href: '/dashboard/vehicles' }]}> 
       <Head title="Vehicles" />
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -41,7 +41,6 @@ export default function Vehicles({ vehicles = [] as Vehicle[] }: { vehicles?: Ve
           ))}
         </div>
       </div>
-    </AppLayout>
+    </UserLayout>
   );
 }
-
