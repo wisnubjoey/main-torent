@@ -27,43 +27,37 @@ class CheckoutController extends Controller
 
     public function applyOrder(Request $request)
     {
-        $data = $request->validate([
-            'start_at' => ['required','date'],
-            'time_type' => ['required','in:daily,weekly,monthly'],
-            'duration_units' => ['required','integer','min:1'],
-        ]);
-
         $user = Auth::user();
         $cart = Cart::forUser($user->id)->load(['items.vehicle']);
         if ($cart->items->isEmpty()) { return redirect()->back()->withErrors(['cart' => 'Cart is empty']); }
 
-        $start = Carbon::parse($data['start_at']);
-        $end = match ($data['time_type']) {
-            'daily' => $start->copy()->addDays($data['duration_units']),
-            'weekly' => $start->copy()->addWeeks($data['duration_units']),
-            'monthly' => $start->copy()->addMonths($data['duration_units']),
-        };
+        $today = Carbon::today();
+        $computedStart = null;
+        $computedEnd = null;
 
         DB::beginTransaction();
         try {
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'reserved',
-                'time_type' => $data['time_type'],
-                'duration_units' => (int)$data['duration_units'],
-                'start_at' => $start,
-                'end_at' => $end,
+                'time_type' => 'daily',
+                'duration_units' => 1,
+                'start_at' => $today,
+                'end_at' => $today,
                 'total_amount_idr' => 0,
             ]);
 
             foreach ($cart->items as $ci) {
                 $vehicle = $ci->vehicle;
-                $unit = match ($data['time_type']) {
+                $tt = $ci->time_type ?? 'daily';
+                $du = (int)($ci->duration_units ?? 1);
+                $start = $ci->start_at ? Carbon::parse($ci->start_at) : $today->copy();
+                $unit = match ($tt) {
                     'daily' => (int)($vehicle->price_daily_idr ?? 0),
                     'weekly' => (int)($vehicle->price_weekly_idr ?? 0),
                     'monthly' => (int)($vehicle->price_monthly_idr ?? 0),
                 };
-                $subtotal = $unit * (int)$data['duration_units'] * (int)$ci->quantity;
+                $subtotal = $unit * $du * (int)$ci->quantity;
                 OrderItem::create([
                     'order_id' => $order->id,
                     'vehicle_id' => $vehicle->id,
@@ -71,7 +65,23 @@ class CheckoutController extends Controller
                     'unit_price_idr' => $unit,
                     'subtotal_idr' => $subtotal,
                 ]);
+
+                $itemEnd = match ($tt) {
+                    'daily' => $start->copy()->addDays($du),
+                    'weekly' => $start->copy()->addWeeks($du),
+                    'monthly' => $start->copy()->addMonths($du),
+                };
+                if ($computedStart === null || $start->lt($computedStart)) {
+                    $computedStart = $start->copy();
+                }
+                if ($computedEnd === null || $itemEnd->gt($computedEnd)) {
+                    $computedEnd = $itemEnd->copy();
+                }
             }
+
+            $order->start_at = $computedStart ?? $today;
+            $order->end_at = $computedEnd ?? $today;
+            $order->save();
 
             $order->recomputeTotals();
             $cart->update(['status' => 'converted']);
@@ -83,4 +93,3 @@ class CheckoutController extends Controller
         }
     }
 }
-
