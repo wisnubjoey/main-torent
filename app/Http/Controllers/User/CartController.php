@@ -66,4 +66,25 @@ class CartController extends Controller
         $item->delete();
         return redirect()->back()->with('success', 'Removed from cart');
     }
+
+    public function updateConfigByVehicle(Request $request, Vehicle $vehicle)
+    {
+        $data = $request->validate([
+            'time_type' => ['required','in:daily,weekly,monthly'],
+            'duration_units' => ['nullable','integer','min:1'],
+            'start_at' => ['nullable','date'],
+        ]);
+        $user = Auth::user();
+        $cart = Cart::forUser($user->id);
+        $item = CartItem::where('cart_id', $cart->id)->where('vehicle_id', $vehicle->id)->first();
+        if (!$item) {
+            return redirect()->back()->withErrors(['item' => 'Item not found']);
+        }
+        $item->update([
+            'time_type' => $data['time_type'],
+            'duration_units' => $data['duration_units'] ?? 1,
+            'start_at' => $data['start_at'] ?? $item->start_at,
+        ]);
+        return redirect()->back()->with('success', 'Configuration updated');
+    }
 }

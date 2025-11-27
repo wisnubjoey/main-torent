@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
     Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
     Route::delete('cart/items/by-vehicle/{vehicle}', [CartController::class, 'destroyByVehicle'])->name('cart.items.destroyByVehicle');
+    Route::post('cart/items/by-vehicle/{vehicle}/config', [CartController::class, 'updateConfigByVehicle'])->name('cart.items.updateConfigByVehicle');
 
     Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout');
     Route::post('checkout/apply', [CheckoutController::class, 'applyOrder'])->name('checkout.apply');

@@ -15,6 +15,7 @@ interface VehicleCardProps {
   rentHref?: string
   onRent?: () => void
   inCart?: boolean
+  onAfterRemove?: (vehicleId: number) => void
 }
 
 export function VehicleCard({
@@ -30,6 +31,7 @@ export function VehicleCard({
   rentHref = "/cart/items",
   onRent,
   inCart = false,
+  onAfterRemove,
 }: VehicleCardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hovered, setHovered] = useState(false)
@@ -54,6 +56,9 @@ export function VehicleCard({
             setToastText("Removed from cart")
             setToastOpen(true)
             setTimeout(() => setToastOpen(false), 2000)
+            if (onAfterRemove) {
+              onAfterRemove(vehicleId)
+            }
           },
           onFinish: () => setRenting(false),
         })
