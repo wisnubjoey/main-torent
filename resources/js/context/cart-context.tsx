@@ -51,14 +51,18 @@ export const useCart = () => {
 
 interface CartProviderProps {
   children: ReactNode;
+  initialCart?: Record<number, CartItem>;
 }
 
-export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+export const CartProvider: React.FC<CartProviderProps> = ({ children, initialCart = {} }) => {
   const [cart, setCart] = useState<Record<number, CartItem>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load cart from session storage on mount
   useEffect(() => {
+    if (initialCart && Object.keys(initialCart).length > 0) {
+      setCart(initialCart);
+      return;
+    }
     const storedCart = sessionStorage.getItem('rental_cart');
     if (storedCart) {
       try {
@@ -67,7 +71,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         console.error('Failed to parse cart from session storage:', error);
       }
     }
-  }, []);
+  }, [initialCart]);
 
   // Save cart to session storage whenever it changes
   useEffect(() => {

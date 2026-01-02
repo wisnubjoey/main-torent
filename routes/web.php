@@ -76,6 +76,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'transmission' => $v->transmission,
                     'image_url' => $v->image_url,
                     'primary_image_alt' => $v->primary_image_alt,
+                    'price_daily_idr' => $v->price_daily_idr,
+                    'price_weekly_idr' => $v->price_weekly_idr,
+                    'price_monthly_idr' => $v->price_monthly_idr,
                 ];
             });
 
@@ -91,6 +94,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('rental-cart/update', [RentalCartController::class, 'update'])->name('rental-cart.update');
     Route::post('rental-cart/remove', [RentalCartController::class, 'remove'])->name('rental-cart.remove');
     Route::post('rental-cart/checkout', [RentalCartController::class, 'checkout'])->name('rental-cart.checkout');
+    Route::get('checkout', function () {
+        return Inertia::render('user/checkout/index');
+    })->name('checkout');
     Route::get('my-orders', [RentalCartController::class, 'myOrders'])->name('my-orders');
     
     Route::get('vehicle', function () {

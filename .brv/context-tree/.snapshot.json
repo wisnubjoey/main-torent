@@ -1,0 +1,102 @@
+{
+  "createdAt": "2025-12-30T13:22:28.340Z",
+  "files": {
+    "design/context.md": {
+      "hash": "69f1cfcef6cddfa551abd7f12ded2923973424c607aefbef7752ef645873ff58",
+      "size": 54
+    },
+    "code_style/context.md": {
+      "hash": "579c53d1d3f24f63319def89ad56b10bd72d252619b3b0a66f88f88df1710afa",
+      "size": 77
+    },
+    "bug_fixes/context.md": {
+      "hash": "3c9457addd1103ae67997b14eddf437bda6d4a7a411f058afd70b035c4aca590",
+      "size": 45
+    },
+    "structure/context.md": {
+      "hash": "8609e406f606376a0da555bc0d3b29b6a4a3e826281771dd2455413cffd8379c",
+      "size": 64
+    },
+    "testing/context.md": {
+      "hash": "7d29f58cf887df06802b0f11887e4c0b437eb2ac59e81711c82c6e5e83f04915",
+      "size": 42
+    },
+    "authentication/admin_guard/admin_guard.md": {
+      "hash": "358c60dba7a1fb4932af56d98f20a770e801470a227918dfbceaf7d9e06ecb8e",
+      "size": 217
+    },
+    "authentication/custom_views/custom_fortify_views.md": {
+      "hash": "cc443c3cfaf100e4e5db6dfb1d9dba107d1c2d00478632fbb09a0027f00ee110",
+      "size": 605
+    },
+    "authorization/admin_middleware/admin_middleware.md": {
+      "hash": "d61b1754fa53d867957d9d5338a87fcbeb2028720948a096d5adff9ba805ced8",
+      "size": 688
+    },
+    "authentication/rate_limiting/rate_limiting.md": {
+      "hash": "9b39f7f140bb336ca092201ebde02a0a531b0b8a13df8dd00fc3772a676400e5",
+      "size": 474
+    },
+    "cart_management/frontend/frontend_cart_context.md": {
+      "hash": "71a4880e19b7820ece994177c0f2d30119e9891cba7b5b2acae015741da01d8e",
+      "size": 880
+    },
+    "cart_management/backend/backend_cart_controller.md": {
+      "hash": "bad0960d3ba52407db8b70d97704feae380ad676c19957777fea645077c62788",
+      "size": 660
+    },
+    "cart_management/cart_operations/cart_operations.md": {
+      "hash": "2b5d8d20cca04782baec2c23acfb509336a6e1c7407583be2c7e795d70b12561",
+      "size": 561
+    },
+    "authentication/fortify_setup/fortify_setup.md": {
+      "hash": "3c223cb039a1d96b9651ddd636c2f0d628e24847934cf4964765f6b90bbcac5e",
+      "size": 398
+    },
+    "cart_management/session_storage/cart_session_storage.md": {
+      "hash": "687a2242ecada2df57a8ab960b5822a6a633950ed24b9b0e7f814d2f8c264bfc",
+      "size": 903
+    },
+    "compliance/context.md": {
+      "hash": "175bfdda33fedb9baf8532f7f041ccea9f958d96cc29395feb83d8770f4ea47a",
+      "size": 50
+    },
+    "cart_management/pricing/cart_pricing.md": {
+      "hash": "d934280c6def92ae5d3a96db942c2ce0e55bc02e386c975a60dd0e58496fe72e",
+      "size": 664
+    },
+    "structure/inertia_ssr/inertia_js_ssr.md": {
+      "hash": "dec145b5c3fc7fee9656b15c8bcceaf2b25cdd4ff208cfa0603bfeae450d131c",
+      "size": 553
+    },
+    "structure/rental_order_model/rentalorder_model.md": {
+      "hash": "f0253ba0c06612bef55d01b05c889eaed5ea8f2c9aa6dfb6bd9802d373a6286f",
+      "size": 754
+    },
+    "structure/rental_order_item_model/rentalorderitem_model.md": {
+      "hash": "00bea5128b8b4fa8a53a03ab0a006086dd7702955063d0c7fc64943be368bb26",
+      "size": 950
+    },
+    "structure/inertia_setup/inertia_js_setup.md": {
+      "hash": "ba7b038cb04ebe020b1965d15cb1fae9360e505971dcd02a4ec5dc6673770792",
+      "size": 978
+    },
+    "structure/vehicle_model/vehicle_model.md": {
+      "hash": "64c335c146315e59f3fbdd61f21f67b48d525947c7be2c0a026183bd0c46e223",
+      "size": 863
+    },
+    "structure/rental_order_controller/admin_rentalordercontroller.md": {
+      "hash": "55e89f15b4bf80a08ebc79150f849d8fe256deea542ce7abb6478be39205821b",
+      "size": 940
+    },
+    "structure/vehicle_controller/admin_vehicle_controller.md": {
+      "hash": "12bd80f1d587d55056de8bc2a0df736adc8e829b1670bde2920125d159a4114a",
+      "size": 815
+    },
+    "structure/wayfinder_routing/wayfinder_type_safe_routing.md": {
+      "hash": "5f9995791711752687d44bf90805764063241c6d027ab55e3b7083aec9c8afb4",
+      "size": 795
+    }
+  },
+  "version": 1
+}
