@@ -21,7 +21,22 @@ import { router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 
 export default function OrderHistoryPage() {
-    const { orders, filters, stats } = usePage().props as any;
+    const { orders, filters, stats } = usePage().props as {
+        orders?: { data?: unknown[]; links?: unknown[] } & unknown[];
+        filters?: {
+            date_from?: string;
+            date_to?: string;
+            user?: string;
+            status?: string;
+            vehicle_count_min?: string;
+            vehicle_count_max?: string;
+        };
+        stats?: {
+            total_orders?: number;
+            completed_orders?: number;
+            cancelled_orders?: number;
+        };
+    };
     const [localFilters, setLocalFilters] = useState({
         date_from: filters?.date_from ?? '',
         date_to: filters?.date_to ?? '',
@@ -32,14 +47,17 @@ export default function OrderHistoryPage() {
     });
 
     useEffect(() => {
-        setLocalFilters({
-            date_from: filters?.date_from ?? '',
-            date_to: filters?.date_to ?? '',
-            user: filters?.user ?? '',
-            status: filters?.status ?? '',
-            vehicle_count_min: filters?.vehicle_count_min ?? '',
-            vehicle_count_max: filters?.vehicle_count_max ?? '',
-        });
+        if (filters) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setLocalFilters({
+                date_from: filters.date_from ?? '',
+                date_to: filters.date_to ?? '',
+                user: filters.user ?? '',
+                status: filters.status ?? '',
+                vehicle_count_min: filters.vehicle_count_min ?? '',
+                vehicle_count_max: filters.vehicle_count_max ?? '',
+            });
+        }
     }, [filters]);
 
     const list = useMemo(() => (orders?.data ?? orders ?? []), [orders]);
@@ -149,41 +167,54 @@ export default function OrderHistoryPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {list.map((order: any) => (
-                                <TableRow key={order.id} className="h-16">
-                                    <TableCell className="font-medium">{order.id}</TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <p className="font-medium">{order.user?.name}</p>
-                                            <p className="text-sm text-muted-foreground">{order.user?.phone}</p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{order.vehicle_count}</TableCell>
-                                    <TableCell>{order.period}</TableCell>
-                                    <TableCell>{formatIDR(order.total_price_idr)}</TableCell>
-                                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-2"></div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {list.map((order: unknown) => {
+                                const o = order as {
+                                    id: number;
+                                    user?: { name?: string; phone?: string };
+                                    vehicle_count: number;
+                                    period: string;
+                                    total_price_idr: number;
+                                    status: string;
+                                };
+                                return (
+                                    <TableRow key={o.id} className="h-16">
+                                        <TableCell className="font-medium">{o.id}</TableCell>
+                                        <TableCell>
+                                            <div>
+                                                <p className="font-medium">{o.user?.name}</p>
+                                                <p className="text-sm text-muted-foreground">{o.user?.phone}</p>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{o.vehicle_count}</TableCell>
+                                        <TableCell>{o.period}</TableCell>
+                                        <TableCell>{formatIDR(o.total_price_idr)}</TableCell>
+                                        <TableCell>{getStatusBadge(o.status)}</TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-2"></div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </div>
 
                 {orders?.links && (
                     <div className="flex flex-wrap items-center gap-2">
-                        {orders.links.map((l: any, idx: number) => (
-                            <Button
-                                key={idx}
-                                variant={l.active ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => l.url && router.get(l.url, {}, { preserveScroll: true })}
-                                disabled={!l.url}
-                            >
-                                {l.label.replace(/&laquo;|&raquo;/g, '')}
-                            </Button>
-                        ))}
+                        {orders.links.map((l: unknown, idx: number) => {
+                            const link = l as { url?: string; active?: boolean; label: string };
+                            return (
+                                <Button
+                                    key={idx}
+                                    variant={link.active ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                                    disabled={!link.url}
+                                >
+                                    {link.label.replace(/&laquo;|&raquo;/g, '')}
+                                </Button>
+                            );
+                        })}
                     </div>
                 )}
             </div>

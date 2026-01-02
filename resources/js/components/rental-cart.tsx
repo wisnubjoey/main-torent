@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, ChevronUp, ChevronDown, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { CartItem } from "./cart-item";
 import { router } from '@inertiajs/react';
-import { toast } from 'sonner';
 
 export function RentalCart() {
   const [isExpanded, setIsExpanded] = useState(false);
