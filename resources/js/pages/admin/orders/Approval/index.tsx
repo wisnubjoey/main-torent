@@ -26,7 +26,16 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ApprovalPage() {
-    const { orders } = usePage().props as any;
+    const { orders } = usePage().props as {
+        orders?: Array<{
+            id: number;
+            user?: { name?: string; phone?: string };
+            vehicle_count: number;
+            period: string;
+            total_price_idr: number;
+            status: string;
+        }>;
+    };
     const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -126,7 +135,7 @@ export default function ApprovalPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {orders.map((order: any) => (
+                            {orders?.map((order) => (
                                 <TableRow key={order.id} className="h-16">
                                     <TableCell className="font-medium">{order.id}</TableCell>
                                     <TableCell>
@@ -151,9 +160,9 @@ export default function ApprovalPage() {
                                     <TableCell>
                                         <div className="flex space-x-2">
                                             {order.status === 'draft' && (
-                                                <Button 
-                                                    variant="default" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
                                                     onClick={() => handleStart(order.id)}
                                                     disabled={isProcessing}
                                                     title="Start Rental"
@@ -162,9 +171,9 @@ export default function ApprovalPage() {
                                                 </Button>
                                             )}
                                             {order.status === 'ongoing' && (
-                                                <Button 
-                                                    variant="secondary" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
                                                     onClick={() => handleComplete(order.id)}
                                                     disabled={isProcessing}
                                                     title="Complete Rental"
@@ -173,9 +182,9 @@ export default function ApprovalPage() {
                                                 </Button>
                                             )}
                                             {(order.status === 'draft' || order.status === 'ongoing') && (
-                                                <Button 
-                                                    variant="destructive" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
                                                     onClick={() => setOrderToCancel(order.id)}
                                                     disabled={isProcessing}
                                                     title="Cancel Order"

@@ -1,5 +1,5 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
-import { ShoppingCart, Plus, Check } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { Button } from "./button";
 import { Card, CardContent, CardFooter } from "./card";
 import { cn } from "@/lib/utils";

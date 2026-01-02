@@ -55,21 +55,28 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children, initialCart = {} }) => {
-  const [cart, setCart] = useState<Record<number, CartItem>>({});
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
+  const [cart, setCart] = useState<Record<number, CartItem>>(() => {
     if (initialCart && Object.keys(initialCart).length > 0) {
-      setCart(initialCart);
-      return;
+      return initialCart;
     }
     const storedCart = sessionStorage.getItem('rental_cart');
     if (storedCart) {
       try {
-        setCart(JSON.parse(storedCart));
+        return JSON.parse(storedCart);
       } catch (error) {
         console.error('Failed to parse cart from session storage:', error);
+        return {};
       }
+    }
+    return {};
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Sync cart with initialCart from server (e.g., after page navigation)
+  useEffect(() => {
+    if (initialCart && Object.keys(initialCart).length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCart(initialCart);
     }
   }, [initialCart]);
 
@@ -80,7 +87,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, initialCar
 
   const calculateEndDate = (startDate: string, mode: 'daily' | 'weekly' | 'monthly', quantity: number): string => {
     const start = new Date(startDate);
-    let end = new Date(start);
+    const end = new Date(start);
 
     switch (mode) {
       case 'daily':
@@ -123,7 +130,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children, initialCar
         { vehicle_id: vehicleId },
         {
           onSuccess: (page) => {
-            const newCartItem = page.props.cart?.[vehicleId];
+            const newCartItem = (page.props as { cart?: Record<number, CartItem> }).cart?.[vehicleId];
             if (newCartItem) {
               setCart(prev => ({
                 ...prev,
